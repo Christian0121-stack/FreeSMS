@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - FreeSMSPH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffba08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 900px;
+            width: 100%;
+            margin: 2rem;
+            position: relative;
+            z-index: 10;
+            animation: slideIn 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-visual {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-visual::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        }
+
+        .brand-logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6); }
+        }
+
+        .brand-tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .visual-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-form-container {
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-header h2 {
+            color: #ff6b35;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            animation: fadeInDown 1s ease-out 0.3s both;
+        }
+
+        .form-header p {
+            color: #666;
+            animation: fadeInDown 1s ease-out 0.6s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-form {
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff6b35;
+            font-size: 1.2rem;
+            margin-top: 0.75rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1.1rem;
+            z-index: 2;
+            cursor: pointer;
+            user-select: none;
+            margin-top: 0.75rem;
+        }
+
+        .password-toggle:hover {
+            color: #ff6b35;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: auto;
+        }
+
+        .forgot-password {
+            color: #ff6b35;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+            color: #e55a2b;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .signup-link {
+            text-align: center;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: #ff6b35;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+            color: #e55a2b;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+        }
+
+        .back-home a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-home a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10002;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #333;
+        }
+
+        .attempts-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .attempts-warning.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .lockout-warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+            text-align: center;
+        }
+
+        .lockout-warning.show {
+            display: block;
+        }
+
+        .lockout-timer {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #dc3545;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+            cursor: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            animation: slideInModal 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            cursor: auto;
+        }
+
+        @keyframes slideInModal {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            color: #ff6b35;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #999;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff6b35;
+        }
+
+        /* Fix cursor for all modal elements */
+        .modal-form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            cursor: auto;
+        }
+
+        .modal-form-group input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .modal-form-group input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .modal-input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff6b35;
+            font-size: 1.2rem;
+            margin-top: 0.75rem;
+        }
+
+        .modal-submit-btn {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .modal-submit-btn:disabled {
+            opacity: 0.6;
+        }
+
+        .modal-submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-submit-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Protection Warning Style */
+        .protection-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .protection-warning h2 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .protection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-size: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .protection-message {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                margin: 1rem;
+                max-width: 500px;
+            }
+
+            .login-visual {
+                display: none;
+            }
+
+            .back-home {
+                top: 1rem;
+                left: 1rem;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-form-container {
+                padding: 2rem;
+            }
+
+            .form-header h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Protection Warning Overlay -->
+    <div class="protection-warning" id="protectionWarning">
+        <div>
+            <h2>🚫 Access Restricted</h2>
+            <p>Developer tools are disabled on this website.</p>
+            <p>Please browse normally to use this site.</p>
+        </div>
+    </div>
+
+    <div class="back-home">
+        <a href="index.html">
+            ← Back to Home
+        </a>
+    </div>
+
+    <div class="login-container">
+        <div class="login-visual">
+            <div class="brand-logo">FreeSMSPH</div>
+            <div class="brand-tagline">Send FREE SMS sa buong Pilipinas</div>
+            <div class="visual-stats">
+                <div class="stat">
+                    <span class="stat-number">1M+</span>
+                    <span>Messages Sent</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">50K+</span>
+                    <span>Happy Users</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-form-container">
+            <div class="form-header">
+                <h2>Welcome Back!</h2>
+                <p>Sign in with your username and password</p>
+            </div>
+
+            <div class="lockout-warning" id="lockoutWarning">
+                <p>🔒 Account is temporarily locked due to multiple failed login attempts.</p>
+                <p>Try again in: <span class="lockout-timer" id="lockoutTimer">--:--</span></p>
+            </div>
+
+            <div class="attempts-warning" id="attemptsWarning">
+                ⚠️ <span id="attemptsMessage"></span>
+            </div>
+
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-icon">👤</div>
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-icon">🔒</div>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <div class="password-toggle" onclick="togglePassword()">👁️</div>
+                </div>
+
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-password" onclick="openForgotPasswordModal()">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="submit-btn" id="loginBtn">Sign In 🚀</button>
+            </form>
+
+            <div class="signup-link">
+                Don't have an account? <a href="register.html">Sign up here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeForgotPasswordModal()">&times;</span>
+            <div class="modal-header">
+                <h3>Forgot Password</h3>
+                <p>Enter your username to request password reset</p>
+            </div>
+            <form id="forgotPasswordForm">
+                <div class="modal-form-group">
+                    <label for="forgotUsername">Username</label>
+                    <div class="modal-input-icon">👤</div>
+                    <input type="text" id="forgotUsername" name="forgotUsername" placeholder="Enter your username" required>
+                </div>
+                <button type="submit" class="modal-submit-btn" id="forgotPasswordBtn">Submit Request 📧</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Protection Overlay -->
+    <div class="protection-overlay" id="protectionOverlay">
+        <div class="protection-message">
+            <h2>⚠️ Access Denied</h2>
+            <p>Developer tools are not allowed on this website.</p>
+            <p>Please close the developer tools to continue.</p>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, child, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCw6qKed942Hyth6tREAfwSfhTp1RLZhlU",
+            authDomain: "freesmsph-62cbe.firebaseapp.com",
+            databaseURL: "https://freesmsph-62cbe-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "freesmsph-62cbe",
+            storageBucket: "freesmsph-62cbe.firebasestorage.app",
+            messagingSenderId: "719414699166",
+            appId: "1:719414699166:web:f5064fafd2abca25a9478f",
+            measurementId: "G-Q06VJKQQ7M"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, type === 'success' ? 3000 : 4000);
+        }
+
+        // Lockout timer interval
+        let lockoutInterval = null;
+
+        // Update lockout timer display
+        function updateLockoutDisplay(lockoutUntil) {
+            const now = Date.now();
+            const lockoutTime = new Date(lockoutUntil).getTime();
+            const remaining = lockoutTime - now;
+
+            if (remaining <= 0) {
+                document.getElementById('lockoutWarning').classList.remove('show');
+                document.getElementById('loginBtn').disabled = false;
+                if (lockoutInterval) {
+                    clearInterval(lockoutInterval);
+                    lockoutInterval = null;
+                }
+                return;
+            }
+
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            let timeString = '';
+            if (hours > 0) {
+                timeString = `${hours}h ${minutes}m ${seconds}s`;
+            } else if (minutes > 0) {
+                timeString = `${minutes}m ${seconds}s`;
+            } else {
+                timeString = `${seconds}s`;
+            }
+
+            document.getElementById('lockoutTimer').textContent = timeString;
+            document.getElementById('lockoutWarning').classList.add('show');
+            document.getElementById('loginBtn').disabled = true;
+        }
+
+        // Find user by username
+        async function findUserByUsername(username) {
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    for (const [userId, userData] of Object.entries(users)) {
+                        if (userData.username && userData.username.toLowerCase() === username.toLowerCase()) {
+                            return { id: userId, ...userData };
+                        }
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('Error finding user:', error);
+                return null;
+            }
+        }
+
+        // Forgot Password functionality
+        async function handleForgotPassword(username) {
+            try {
+                // Check if username exists
+                const user = await findUserByUsername(username);
+                
+                if (!user) {
+                    showToast('Username not found. Please check your username.', 'error');
+                    return false;
+                }
+
+                // Save forgot password request to database
+                const forgotPasswordRef = ref(database, 'forgotpassword');
+                const requestData = {
+                    username: user.username,
+                    userId: user.id,
+                    requestDate: new Date().toISOString(),
+                    status: 'pending'
+                };
+
+                await push(forgotPasswordRef, requestData);
+                
+                showToast('Password reset request submitted successfully! Please contact support.', 'success');
+                return true;
+
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showToast('Failed to submit request. Please try again.', 'error');
+                return false;
+            }
+        }
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+
+            if (!username) {
+                showToast('Please enter your username', 'error');
+                return;
+            }
+
+            if (!password) {
+                showToast('Please enter your password', 'error');
+                return;
+            }
+
+            // Hide previous warnings
+            document.getElementById('attemptsWarning').classList.remove('show');
+
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+
+            try {
+                // Find user by username
+                const user = await findUserByUsername(username);
+
+                if (!user) {
+                    // Username not found
+                    showToast('Incorrect username and password. Please check your credentials.', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In 🚀';
+                    return;
+                }
+
+                // Check if account is locked
+                if (user.lockoutUntil) {
+                    const lockoutTime = new Date(user.lockoutUntil).getTime();
+                    const now = Date.now();
+
+                    if (lockoutTime > now) {
+                        updateLockoutDisplay(user.lockoutUntil);
+                        
+                        if (lockoutInterval) clearInterval(lockoutInterval);
+                        lockoutInterval = setInterval(() => {
+                            updateLockoutDisplay(user.lockoutUntil);
+                        }, 1000);
+
+                        showToast('Account is locked. Please try again later.', 'error');
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Sign In 🚀';
+                        return;
+                    } else {
+                        // Lockout expired, reset attempts
+                        await update(ref(database, 'users/' + user.id), {
+                            failedLoginAttempts: 0,
+                            lockoutUntil: ''
+                        });
+                        user.failedLoginAttempts = 0;
+                    }
+                }
+
+                // Check password
+                if (user.password !== password) {
+                    // Incorrect password
+                    let attempts = (user.failedLoginAttempts || 0) + 1;
+                    let lockoutUntil = '';
+                    let lockDuration = 0;
+
+                    if (attempts >= 6) {
+                        // 24 hour lockout after 6 total failed attempts
+                        lockDuration = 24 * 60 * 60 * 1000;
+                        lockoutUntil = new Date(Date.now() + lockDuration).toISOString();
+                        
+                        await update(ref(database, 'users/' + user.id), {
+                            failedLoginAttempts: attempts,
+                            lockoutUntil: lockoutUntil
+                        });
+
+                        updateLockoutDisplay(lockoutUntil);
+                        if (lockoutInterval) clearInterval(lockoutInterval);
+                        lockoutInterval = setInterval(() => {
+                            updateLockoutDisplay(lockoutUntil);
+                        }, 1000);
+
+                        showToast('Account locked for 24 hours due to repeated failed attempts.', 'error');
+                    } else if (attempts >= 3) {
+                        // 3 hour lockout after 3 failed attempts
+                        lockDuration = 3 * 60 * 60 * 1000;
+                        lockoutUntil = new Date(Date.now() + lockDuration).toISOString();
+                        
+                        await update(ref(database, 'users/' + user.id), {
+                            failedLoginAttempts: attempts,
+                            lockoutUntil: lockoutUntil
+                        });
+
+                        updateLockoutDisplay(lockoutUntil);
+                        if (lockoutInterval) clearInterval(lockoutInterval);
+                        lockoutInterval = setInterval(() => {
+                            updateLockoutDisplay(lockoutUntil);
+                        }, 1000);
+
+                        showToast('Account locked for 3 hours due to multiple failed attempts.', 'error');
+                    } else {
+                        // Show remaining attempts
+                        await update(ref(database, 'users/' + user.id), {
+                            failedLoginAttempts: attempts
+                        });
+
+                        const remaining = 3 - attempts;
+                        document.getElementById('attemptsMessage').textContent = 
+                            `Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before account lockout.`;
+                        document.getElementById('attemptsWarning').classList.add('show');
+
+                        showToast('Incorrect password. Please try again.', 'error');
+                    }
+
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Sign In 🚀';
+                    return;
+                }
+
+                // Successful login - reset failed attempts and update last login
+                await update(ref(database, 'users/' + user.id), {
+                    failedLoginAttempts: 0,
+                    lockoutUntil: '',
+                    lastLogin: new Date().toISOString()
+                });
+
+                // Store login state
+                localStorage.setItem('userLoggedIn', 'true');
+                localStorage.setItem('userUsername', user.username);
+                localStorage.setItem('userName', user.fullName);
+                localStorage.setItem('userEmail', user.email);
+                localStorage.setItem('userId', user.id);
+                localStorage.setItem('userFirstName', user.firstName);
+                localStorage.setItem('userLastName', user.lastName);
+
+                showToast('Login successful! Welcome back, ' + user.firstName + '!', 'success');
+
+                // Redirect to index page
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login failed. Please try again. Error: ' + error.message, 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In 🚀';
+            }
+        });
+
+        // Forgot Password form submission
+        document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('forgotUsername').value.trim();
+
+            if (!username) {
+                showToast('Please enter your username', 'error');
+                return;
+            }
+
+            const forgotBtn = document.getElementById('forgotPasswordBtn');
+            forgotBtn.disabled = true;
+            forgotBtn.textContent = 'Submitting...';
+
+            const success = await handleForgotPassword(username);
+            
+            if (success) {
+                document.getElementById('forgotUsername').value = '';
+                setTimeout(() => {
+                    closeForgotPasswordModal();
+                }, 2000);
+            }
+
+            forgotBtn.disabled = false;
+            forgotBtn.textContent = 'Submit Request 📧';
+        });
+
+        // Make showToast available globally
+        window.showToast = showToast;
+    </script>
+
+    <script>
+        // ============================================
+        // PROTECTION CODE - DISABLE DEV TOOLS
+        // ============================================
+        (function() {
+            'use strict';
+
+            let devtools = {opened: false, orientation: null};
+            
+            // Disable right click context menu
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Disable F12 and other developer shortcut keys
+            document.addEventListener('keydown', function(e) {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+I (Chrome DevTools)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+C (Inspect Element)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+J (Console)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+S (Save Page)
+                if (e.ctrlKey && e.keyCode === 83) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+A (Select All) - Sometimes used to copy source
+                if (e.ctrlKey && e.keyCode === 65) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
+                // Ctrl+C (Copy)
+                if (e.ctrlKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Disable other common shortcuts
+                if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 85 || e.keyCode === 117)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+            });
+
+            // Detect DevTools by console.log timing method
+            let element = new Image();
+            let devtoolsChecker;
+            
+            // Check if DevTools is open by monitoring console
+            function detectDevTools() {
+                let before = new Date();
+                debugger;
+                let after = new Date();
+                
+                if (after - before > 100) {
+                    showProtectionWarning();
+                    // Redirect or reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }
+
+            // Run detection every 500ms
+            setInterval(detectDevTools, 500);
+
+            // Monitor window resize (DevTools opening/closing changes window size)
+            let windowHeight = window.innerHeight;
+            let windowWidth = window.innerWidth;
+            
+            window.addEventListener('resize', function() {
+                if (window.innerHeight < windowHeight * 0.7 || window.innerWidth < windowWidth * 0.7) {
+                    showProtectionWarning();
+                }
+            });
+
+            // Disable text selection
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable drag and drop
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Clear console repeatedly
+            setInterval(function() {
+                console.clear();
+                console.log('%c🚫 STOP!', 'color: red; font-size: 50px; font-weight: bold;');
+                console.log('%cThis is a browser feature intended for developers. Code protection is active.', 'color: red; font-size: 16px;');
+            }, 1000);
+
+            // Monitor for DevTools
+            function checkDevTools() {
+                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                    showProtectionWarning();
+                }
+            }
+            
+            setInterval(checkDevTools, 500);
+
+            function showProtectionWarning() {
+                const warning = document.getElementById('protectionWarning');
+                if (warning) {
+                    warning.style.display = 'flex';
+                    setTimeout(() => {
+                        warning.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            // Override console functions
+            window.console = {
+                log: function() {},
+                error: function() {},
+                warn: function() {},
+                info: function() {},
+                debug: function() {},
+                trace: function() {},
+                dir: function() {},
+                group: function() {},
+                groupCollapsed: function() {},
+                groupEnd: function() {},
+                time: function() {},
+                timeEnd: function() {},
+                profile: function() {},
+                profileEnd: function() {},
+                dirxml: function() {},
+                assert: function() {},
+                count: function() {},
+                markTimeline: function() {},
+                timeline: function() {},
+                timelineEnd: function() {},
+                timeStamp: function() {},
+                table: function() {},
+                exception: function() {},
+                clear: function() {}
+            };
+
+            // Disable printing
+            window.addEventListener('beforeprint', function(e) {
+                e.preventDefault();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Monitor for suspicious activity
+            let clickCount = 0;
+            document.addEventListener('click', function(e) {
+                clickCount++;
+                if (clickCount > 50) { // Suspicious clicking patterns
+                    showProtectionWarning();
+                }
+            });
+
+            // Reset click count every 10 seconds
+            setInterval(() => { clickCount = 0; }, 10000);
+
+            // Obfuscate the source when possible
+            document.addEventListener('DOMContentLoaded', function() {
+                // Remove comments from DOM
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_COMMENT,
+                    null,
+                    false
+                );
+                
+                const commentsToRemove = [];
+                let node;
+                
+                while (node = walker.nextNode()) {
+                    commentsToRemove.push(node);
+                }
+                
+                commentsToRemove.forEach(comment => {
+                    comment.remove();
+                });
+            });
+        })();
+
+        // Modal functions
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('show');
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('show');
+            document.getElementById('forgotUsername').value = '';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (event.target === modal) {
+                closeForgotPasswordModal();
+            }
+        }
+
+        // Password toggle function
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleElement = document.querySelector('.password-toggle');
+            const isPassword = passwordField.type === 'password';
+            
+            passwordField.type = isPassword ? 'text' : 'password';
+            toggleElement.textContent = isPassword ? '🙈' : '👁️';
+        }
+
+        // Add input focus animations
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

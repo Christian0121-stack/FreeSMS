@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - FreeSMSPH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffba08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            max-width: 1000px;
+            width: 100%;
+            margin: 2rem;
+            position: relative;
+            z-index: 10;
+            animation: slideIn 1s ease-out;
+            height: 85vh;
+            min-height: 600px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .register-visual {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            height: 100%;
+        }
+
+        .register-visual::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        }
+
+        .visual-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .brand-logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 255, 255, 0.6); }
+        }
+
+        .brand-tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .benefits-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .benefits-list li {
+            padding: 0.7rem 0;
+            position: relative;
+            padding-left: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .benefits-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: white;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .register-form-container {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .form-header h2 {
+            color: #ff6b35;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            animation: fadeInDown 1s ease-out 0.3s both;
+        }
+
+        .form-header p {
+            color: #666;
+            animation: fadeInDown 1s ease-out 0.6s both;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-form {
+            animation: fadeInUp 1s ease-out 0.5s both;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 0.8rem 0.8rem 2.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 0.8rem;
+            top: 2.2rem;
+            color: #ff6b35;
+            font-size: 1.1rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.8rem;
+            top: 2.2rem;
+            color: #666;
+            font-size: 1.1rem;
+            z-index: 2;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.2rem;
+        }
+
+        .password-toggle:hover {
+            color: #ff6b35;
+        }
+
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            background: #ff6b35;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-fill.weak { width: 25%; background: #dc3545; }
+        .strength-fill.fair { width: 50%; background: #ffc107; }
+        .strength-fill.good { width: 75%; background: #fd7e14; }
+        .strength-fill.strong { width: 100%; background: #28a745; }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terms-checkbox input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            margin-top: 0.2rem;
+        }
+
+        .terms-checkbox label {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .terms-checkbox a {
+            color: #ff6b35;
+            text-decoration: none;
+        }
+
+        .terms-checkbox a:hover {
+            text-decoration: underline;
+        }
+
+        .form-footer {
+            flex-shrink: 0;
+            padding-top: 1rem;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 1.2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-link {
+            text-align: center;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        .login-link a {
+            color: #ff6b35;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+            color: #e55a2b;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+        }
+
+        .back-home a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-home a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        .username-hint {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.3rem;
+        }
+
+        .username-status {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+        }
+
+        .username-status.available {
+            color: #28a745;
+        }
+
+        .username-status.taken {
+            color: #dc3545;
+        }
+
+        .username-status.checking {
+            color: #ffc107;
+        }
+
+        /* Protection Warning Style */
+        .protection-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .protection-warning h2 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .protection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-size: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .protection-message {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+
+        /* Scrollbar styling */
+        .register-form-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .register-form-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .register-form-container::-webkit-scrollbar-thumb {
+            background: #ff6b35;
+            border-radius: 10px;
+        }
+
+        .register-form-container::-webkit-scrollbar-thumb:hover {
+            background: #e55a2b;
+        }
+
+        .form-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .form-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .form-content::-webkit-scrollbar-thumb {
+            background: #ff6b35;
+            border-radius: 10px;
+        }
+
+        .form-content::-webkit-scrollbar-thumb:hover {
+            background: #e55a2b;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            .register-container {
+                grid-template-columns: 1fr;
+                margin: 1rem;
+                max-width: 500px;
+                height: auto;
+                max-height: none;
+                min-height: auto;
+            }
+
+            .register-visual {
+                display: none;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .back-home {
+                top: 1rem;
+                left: 1rem;
+            }
+
+            .register-form-container {
+                padding: 1.5rem;
+                height: auto;
+                overflow-y: visible;
+            }
+
+            .register-form {
+                flex: none;
+            }
+
+            .form-content {
+                overflow-y: visible;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem 0;
+            }
+
+            .register-form-container {
+                padding: 1rem;
+            }
+
+            .form-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-height: 800px) {
+            .register-container {
+                height: 75vh;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .register-container {
+                height: 95vh;
+                min-height: 550px;
+            }
+
+            .register-visual {
+                padding: 2rem;
+            }
+
+            .brand-logo {
+                font-size: 2rem;
+            }
+
+            .benefits-list li {
+                padding: 0.5rem 0;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Protection Warning Overlay -->
+    <div class="protection-warning" id="protectionWarning">
+        <div>
+            <h2>🚫 Access Restricted</h2>
+            <p>Developer tools are disabled on this website.</p>
+            <p>Please browse normally to use this site.</p>
+        </div>
+    </div>
+
+    <div class="back-home">
+        <a href="index.html">
+            ← Back to Home
+        </a>
+    </div>
+
+    <div class="register-container">
+        <div class="register-visual">
+            <div class="visual-content">
+                <div class="brand-logo">FreeSMSPH</div>
+                <div class="brand-tagline">Join thousands of satisfied users!</div>
+                <ul class="benefits-list">
+                    <li>Send unlimited FREE SMS</li>
+                    <li>All Philippine networks supported</li>
+                    <li>No hidden charges, ever!</li>
+                    <li>Secure & private messaging</li>
+                    <li>24/7 customer support</li>
+                    <li>API access for developers</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="register-form-container">
+            <div class="form-header">
+                <h2>Create Your Account</h2>
+                <p>Start sending free SMS messages today</p>
+            </div>
+
+            <form class="register-form" id="registrationForm">
+                <div class="form-content">
+                    <!-- Username for Login -->
+                    <div class="form-group">
+                        <label for="username">Username * (for login)</label>
+                        <div class="input-icon">🔑</div>
+                        <input type="text" id="username" name="username" placeholder="Choose a username" required minlength="4" maxlength="20">
+                        <div class="username-hint">4-20 characters, letters, numbers, and underscores only</div>
+                        <div class="username-status" id="usernameStatus"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name *</label>
+                            <div class="input-icon">👤</div>
+                            <input type="text" id="firstName" name="firstName" placeholder="Enter first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name *</label>
+                            <div class="input-icon">👤</div>
+                            <input type="text" id="lastName" name="lastName" placeholder="Enter last name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <div class="input-icon">📧</div>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <div class="input-icon">📱</div>
+                        <input type="tel" id="phone" name="phone" placeholder="09XX XXX XXXX" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">Password *</label>
+                            <div class="input-icon">🔒</div>
+                            <input type="password" id="password" name="password" placeholder="Create password" required minlength="6">
+                            <div class="password-toggle" onclick="togglePassword('password', this)">👁️</div>
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <div id="strengthText">Password strength</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password *</label>
+                            <div class="input-icon">🔒</div>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" required>
+                            <div class="password-toggle" onclick="togglePassword('confirmPassword', this)">👁️</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthdate">Birthday</label>
+                        <div class="input-icon">🎂</div>
+                        <input type="date" id="birthdate" name="birthdate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <div class="input-icon">👥</div>
+                        <select id="gender" name="gender">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <div class="terms-checkbox">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <label for="terms">
+                            I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>. I also agree to receive promotional emails and SMS updates.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="submit-btn" id="submitBtn" disabled>Create Account 🚀</button>
+
+                    <div class="login-link">
+                        Already have an account? <a href="login.html">Sign in here</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Protection Overlay -->
+    <div class="protection-overlay" id="protectionOverlay">
+        <div class="protection-message">
+            <h2>⚠️ Access Denied</h2>
+            <p>Developer tools are not allowed on this website.</p>
+            <p>Please close the developer tools to continue.</p>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCw6qKed942Hyth6tREAfwSfhTp1RLZhlU",
+            authDomain: "freesmsph-62cbe.firebaseapp.com",
+            databaseURL: "https://freesmsph-62cbe-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "freesmsph-62cbe",
+            storageBucket: "freesmsph-62cbe.firebasestorage.app",
+            messagingSenderId: "719414699166",
+            appId: "1:719414699166:web:f5064fafd2abca25a9478f",
+            measurementId: "G-Q06VJKQQ7M"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, type === 'success' ? 4000 : 3000);
+        }
+
+        // Check if username is available
+        async function checkUsernameAvailability(username) {
+            const usernameStatus = document.getElementById('usernameStatus');
+            
+            if (username.length < 4) {
+                usernameStatus.textContent = '';
+                usernameStatus.className = 'username-status';
+                return false;
+            }
+
+            usernameStatus.textContent = 'Checking availability...';
+            usernameStatus.className = 'username-status checking';
+
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const usernameTaken = Object.values(users).some(user => 
+                        user.username && user.username.toLowerCase() === username.toLowerCase()
+                    );
+                    
+                    if (usernameTaken) {
+                        usernameStatus.textContent = '✗ Username is already taken';
+                        usernameStatus.className = 'username-status taken';
+                        return false;
+                    }
+                }
+                
+                usernameStatus.textContent = '✓ Username is available';
+                usernameStatus.className = 'username-status available';
+                return true;
+            } catch (error) {
+                console.error('Error checking username:', error);
+                usernameStatus.textContent = '';
+                usernameStatus.className = 'username-status';
+                return true;
+            }
+        }
+
+        // Debounce function for username check
+        let usernameTimeout;
+        document.getElementById('username').addEventListener('input', function() {
+            clearTimeout(usernameTimeout);
+            const username = this.value.trim();
+            
+            // Validate username format
+            const usernameRegex = /^[a-zA-Z0-9_]+$/;
+            if (username && !usernameRegex.test(username)) {
+                document.getElementById('usernameStatus').textContent = '✗ Only letters, numbers, and underscores allowed';
+                document.getElementById('usernameStatus').className = 'username-status taken';
+                return;
+            }
+
+            usernameTimeout = setTimeout(() => {
+                if (username.length >= 4) {
+                    checkUsernameAvailability(username);
+                }
+            }, 500);
+        });
+
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const birthdate = document.getElementById('birthdate').value;
+            const gender = document.getElementById('gender').value;
+            const termsAccepted = document.getElementById('terms').checked;
+
+            // Validate required fields
+            if (!username) {
+                showToast('Please enter a username', 'error');
+                return;
+            }
+
+            // Validate username format
+            const usernameRegex = /^[a-zA-Z0-9_]+$/;
+            if (!usernameRegex.test(username)) {
+                showToast('Username can only contain letters, numbers, and underscores', 'error');
+                return;
+            }
+
+            if (username.length < 4 || username.length > 20) {
+                showToast('Username must be 4-20 characters long', 'error');
+                return;
+            }
+
+            if (!firstName) {
+                showToast('Please enter your first name', 'error');
+                return;
+            }
+            if (!lastName) {
+                showToast('Please enter your last name', 'error');
+                return;
+            }
+            if (!email) {
+                showToast('Please enter your email address', 'error');
+                return;
+            }
+            if (!phone) {
+                showToast('Please enter your phone number', 'error');
+                return;
+            }
+            if (!password) {
+                showToast('Please enter a password', 'error');
+                return;
+            }
+            if (!confirmPassword) {
+                showToast('Please confirm your password', 'error');
+                return;
+            }
+            if (!termsAccepted) {
+                showToast('Please accept the terms and conditions', 'error');
+                return;
+            }
+
+            // Validate password match
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            // Validate phone number format
+            const phoneRegex = /^09\d{9}$/;
+            if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+                showToast('Please enter a valid Philippine phone number', 'error');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.disabled = true;
+
+            try {
+                // Check if username is already taken
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    
+                    // Check username
+                    const usernameTaken = Object.values(users).some(user => 
+                        user.username && user.username.toLowerCase() === username
+                    );
+                    
+                    if (usernameTaken) {
+                        showToast('Username is already taken. Please choose a different one.', 'error');
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Check email
+                    const emailTaken = Object.values(users).some(user => 
+                        user.email && user.email.toLowerCase() === email.toLowerCase()
+                    );
+                    
+                    if (emailTaken) {
+                        showToast('Email address is already registered. Please use a different email or try logging in.', 'error');
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                }
+
+                // Generate user ID using username instead of timestamp
+                const uniqueId = 'user_' + username;
+
+                // Save user data to Realtime Database with readable field names
+                await set(ref(database, 'users/' + uniqueId), {
+                    username: username,
+                    password: password,
+                    firstName: firstName,
+                    lastName: lastName,
+                    fullName: firstName + ' ' + lastName,
+                    email: email.toLowerCase(),
+                    phoneNumber: phone,
+                    birthdate: birthdate || '',
+                    gender: gender || '',
+                    dateRegistered: new Date().toISOString(),
+                    accountStatus: 'Active',
+                    failedLoginAttempts: 0,
+                    lockoutUntil: '',
+                    lastLogin: ''
+                });
+
+                showToast('Successfully Registered! Redirecting to login...', 'success');
+                
+                // Redirect to login page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                showToast('Registration failed. Please try again. Error: ' + error.message, 'error');
+            }
+        });
+
+        // Make showToast available globally
+        window.showToast = showToast;
+    </script>
+
+    <script>
+        // ============================================
+        // PROTECTION CODE - DISABLE DEV TOOLS
+        // ============================================
+        (function() {
+            'use strict';
+
+            let devtools = {opened: false, orientation: null};
+            
+            // Disable right click context menu
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Disable F12 and other developer shortcut keys
+            document.addEventListener('keydown', function(e) {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+I (Chrome DevTools)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+C (Inspect Element)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+J (Console)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+S (Save Page)
+                if (e.ctrlKey && e.keyCode === 83) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+A (Select All) - Sometimes used to copy source
+                if (e.ctrlKey && e.keyCode === 65) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
+                // Ctrl+C (Copy)
+                if (e.ctrlKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Disable other common shortcuts
+                if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 85 || e.keyCode === 117)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+            });
+
+            // Detect DevTools by console.log timing method
+            let element = new Image();
+            let devtoolsChecker;
+            
+            // Check if DevTools is open by monitoring console
+            function detectDevTools() {
+                let before = new Date();
+                debugger;
+                let after = new Date();
+                
+                if (after - before > 100) {
+                    showProtectionWarning();
+                    // Redirect or reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }
+
+            // Run detection every 500ms
+            setInterval(detectDevTools, 500);
+
+            // Monitor window resize (DevTools opening/closing changes window size)
+            let windowHeight = window.innerHeight;
+            let windowWidth = window.innerWidth;
+            
+            window.addEventListener('resize', function() {
+                if (window.innerHeight < windowHeight * 0.7 || window.innerWidth < windowWidth * 0.7) {
+                    showProtectionWarning();
+                }
+            });
+
+            // Disable text selection
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable drag and drop
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Clear console repeatedly
+            setInterval(function() {
+                console.clear();
+                console.log('%c🚫 STOP!', 'color: red; font-size: 50px; font-weight: bold;');
+                console.log('%cThis is a browser feature intended for developers. Code protection is active.', 'color: red; font-size: 16px;');
+            }, 1000);
+
+            // Monitor for DevTools
+            function checkDevTools() {
+                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                    showProtectionWarning();
+                }
+            }
+            
+            setInterval(checkDevTools, 500);
+
+            function showProtectionWarning() {
+                const warning = document.getElementById('protectionWarning');
+                if (warning) {
+                    warning.style.display = 'flex';
+                    setTimeout(() => {
+                        warning.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            // Override console functions
+            window.console = {
+                log: function() {},
+                error: function() {},
+                warn: function() {},
+                info: function() {},
+                debug: function() {},
+                trace: function() {},
+                dir: function() {},
+                group: function() {},
+                groupCollapsed: function() {},
+                groupEnd: function() {},
+                time: function() {},
+                timeEnd: function() {},
+                profile: function() {},
+                profileEnd: function() {},
+                dirxml: function() {},
+                assert: function() {},
+                count: function() {},
+                markTimeline: function() {},
+                timeline: function() {},
+                timelineEnd: function() {},
+                timeStamp: function() {},
+                table: function() {},
+                exception: function() {},
+                clear: function() {}
+            };
+
+            // Disable printing
+            window.addEventListener('beforeprint', function(e) {
+                e.preventDefault();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Monitor for suspicious activity
+            let clickCount = 0;
+            document.addEventListener('click', function(e) {
+                clickCount++;
+                if (clickCount > 50) { // Suspicious clicking patterns
+                    showProtectionWarning();
+                }
+            });
+
+            // Reset click count every 10 seconds
+            setInterval(() => { clickCount = 0; }, 10000);
+
+            // Obfuscate the source when possible
+            document.addEventListener('DOMContentLoaded', function() {
+                // Remove comments from DOM
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_COMMENT,
+                    null,
+                    false
+                );
+                
+                const commentsToRemove = [];
+                let node;
+                
+                while (node = walker.nextNode()) {
+                    commentsToRemove.push(node);
+                }
+                
+                commentsToRemove.forEach(comment => {
+                    comment.remove();
+                });
+            });
+        })();
+
+        // Password toggle function
+        function togglePassword(fieldId, toggleElement) {
+            const passwordField = document.getElementById(fieldId);
+            const isPassword = passwordField.type === 'password';
+            
+            passwordField.type = isPassword ? 'text' : 'password';
+            toggleElement.textContent = isPassword ? '🙈' : '👁️';
+        }
+
+        // Make togglePassword available globally
+        window.togglePassword = togglePassword;
+
+        // Password strength checker
+        const passwordInput = document.getElementById('password');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            
+            strengthFill.className = 'strength-fill ' + strength.class;
+            strengthText.textContent = strength.text;
+        });
+
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            if (password.length >= 8) score++;
+            if (password.match(/[a-z]/)) score++;
+            if (password.match(/[A-Z]/)) score++;
+            if (password.match(/[0-9]/)) score++;
+            if (password.match(/[^a-zA-Z0-9]/)) score++;
+
+            const strengths = [
+                { class: '', text: 'Password strength' },
+                { class: 'weak', text: 'Very weak password' },
+                { class: 'weak', text: 'Weak password' },
+                { class: 'fair', text: 'Fair password' },
+                { class: 'good', text: 'Good password' },
+                { class: 'strong', text: 'Strong password' }
+            ];
+
+            return strengths[score];
+        }
+
+        // Form validation
+        const form = document.querySelector('.register-form');
+        const submitBtn = document.getElementById('submitBtn');
+        const termsCheckbox = document.getElementById('terms');
+
+        function validateForm() {
+            const username = document.getElementById('username').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const termsAccepted = termsCheckbox.checked;
+
+            const isValid = username && username.length >= 4 && firstName && lastName && email && phone && password && 
+                           confirmPassword && password === confirmPassword && 
+                           termsAccepted && password.length >= 6;
+
+            submitBtn.disabled = !isValid;
+        }
+
+        // Add event listeners for form validation
+        form.addEventListener('input', validateForm);
+        termsCheckbox.addEventListener('change', validateForm);
+
+        // Password confirmation validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+                this.style.borderColor = '#dc3545';
+            } else {
+                this.setCustomValidity('');
+                this.style.borderColor = '#e9ecef';
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            
+            // Ensure it starts with 09
+            if (!value.startsWith('09')) {
+                if (value.startsWith('9')) {
+                    value = '0' + value;
+                } else if (value.startsWith('63')) {
+                    value = '0' + value.substring(2);
+                } else if (value.length > 0 && !value.startsWith('09')) {
+                    value = '09' + value;
+                }
+            }
+            
+            // Limit to 11 digits
+            value = value.substring(0, 11);
+            this.value = value;
+        });
+
+        // Add input focus animations
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Initial form validation
+        validateForm();
+    </script>
+</body>
+</html>

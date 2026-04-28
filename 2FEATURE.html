@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features - FreeSMSPH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+            background: #fff;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* User Dropdown Styles */
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .user-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .user-menu.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+            z-index: 1001;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 0.3rem;
+        }
+
+        .dropdown-header .user-fullname {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .dropdown-header .user-username {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #ff6b35;
+            padding-left: 1.5rem;
+        }
+
+        .dropdown-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee;
+            color: #c82333;
+        }
+
+        /* Mobile Sidebar */
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            z-index: 1002;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .mobile-sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .mobile-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav-links li {
+            margin: 0;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-nav-links a:hover,
+        .mobile-nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+            padding-left: 2.5rem;
+        }
+
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: clamp(3rem, 8vw, 6rem) 0 clamp(2rem, 5vw, 3rem);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .page-header h1 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .page-header p {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out 0.3s both;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+
+        .features-section {
+            padding: clamp(3rem, 8vw, 6rem) 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: #ff6b35;
+            margin-bottom: clamp(2rem, 5vw, 4rem);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+            gap: clamp(2rem, 4vw, 3rem);
+            margin-bottom: clamp(3rem, 6vw, 5rem);
+        }
+
+        .feature-card {
+            background: white;
+            padding: clamp(2rem, 4vw, 3rem);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+            border-left: 5px solid #ff6b35;
+            height: fit-content;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.2);
+        }
+
+        .feature-icon {
+            width: clamp(60px, 12vw, 80px);
+            height: clamp(60px, 12vw, 80px);
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .feature-card h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+        }
+
+        .feature-card p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            position: relative;
+            padding-left: 2rem;
+            font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .who-we-are {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: clamp(3rem, 8vw, 6rem) 0;
+        }
+
+        .what-we-do {
+            padding: clamp(3rem, 8vw, 6rem) 0;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(2rem, 6vw, 4rem);
+            align-items: center;
+        }
+
+        .content-text h2 {
+            color: #ff6b35;
+            margin-bottom: 2rem;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+        }
+
+        .content-text p {
+            margin-bottom: 1.5rem;
+            font-size: clamp(1rem, 2.2vw, 1.2rem);
+            line-height: 1.8;
+        }
+
+        .content-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .visual-card {
+            background: white;
+            padding: clamp(2rem, 4vw, 3rem);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .visual-card .icon {
+            font-size: clamp(3rem, 6vw, 4rem);
+            margin-bottom: 1rem;
+        }
+
+        .visual-card h3 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            margin-bottom: 1rem;
+            color: #ff6b35;
+        }
+
+        .visual-card p {
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            color: #666;
+        }
+
+        .visual-figure { 
+            width: 100%;
+            margin: 0 0 1rem 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f5f6f8;
+            aspect-ratio: 16 / 9;
+            max-height: clamp(200px, 40vw, 340px);
+        }
+
+        .visual-img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            border-radius: 0;
+        }
+
+        .stats-section {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: clamp(3rem, 8vw, 6rem) 0;
+            text-align: center;
+        }
+
+        .stats-section h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 1rem;
+        }
+
+        .stats-section > p {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card span:last-child {
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: clamp(2rem, 5vw, 3rem) 0 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+        }
+
+        .footer-section p {
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            line-height: 1.6;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+            font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+        }
+
+        .footer-section a:hover {
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+            font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Enhanced Responsive Design */
+        @media (max-width: 1200px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .auth-buttons {
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .user-name {
+                max-width: 80px;
+            }
+
+            .user-dropdown {
+                right: -10px;
+                min-width: 180px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .visual-figure { 
+                aspect-ratio: 4 / 3; 
+                max-height: 260px; 
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .user-toggle {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                max-width: 60px;
+            }
+
+            .user-dropdown {
+                right: -20px;
+                min-width: 160px;
+            }
+
+            .dropdown-item {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .visual-card {
+                padding: 1.5rem;
+            }
+
+            .visual-figure { 
+                aspect-ratio: 3 / 2; 
+                max-height: 200px; 
+            }
+
+            .mobile-sidebar {
+                width: 280px;
+                left: -280px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            .auth-buttons .btn {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-toggle {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+
+            .feature-card {
+                padding: 1rem;
+            }
+
+            .visual-card {
+                padding: 1rem;
+            }
+
+            .mobile-sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 1.5rem 0;
+            }
+
+            .mobile-sidebar-header {
+                padding: 0 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .mobile-nav-links a {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .mobile-nav-links a:hover,
+            .mobile-nav-links a.active {
+                padding-left: 2rem;
+            }
+        }
+
+        /* Ultra-wide screen optimization */
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 1400px;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                max-width: 1000px;
+                margin: 3rem auto 0;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .cursor, .cursor-follower, .navbar, .toast {
+                display: none;
+            }
+            
+            main {
+                margin-top: 0;
+            }
+            
+            .page-header {
+                background: #ff6b35 !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            .feature-card, .visual-card, .stat-card {
+                break-inside: avoid;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .feature-card {
+                border: 2px solid #ff6b35;
+            }
+            
+            .visual-card {
+                border: 2px solid #333;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .cursor, .cursor-follower {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="2FEATURE.html" class="nav-link active">Features</a></li>
+                <li><a href="3PRICING.html" class="nav-link">Pricing</a></li>
+                <li><a href="5ABOUT US.html" class="nav-link">About</a></li>
+                <li><a href="6CONTACT US.html" class="nav-link">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-toggle" id="userToggle">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-fullname" id="dropdownFullname">Full Name</div>
+                        <div class="user-username" id="dropdownUsername">@username</div>
+                    </div>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">📊</span>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">💳</span>
+                        <span>Transaction</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item logout" id="logoutBtn">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <button class="mobile-menu" id="mobileMenuBtn">☰</button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <button class="mobile-close" id="mobileClose">✕</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="2FEATURE.html" class="active">Features</a></li>
+            <li><a href="3PRICING.html">Pricing</a></li>
+            <li><a href="5ABOUT US.html">About</a></li>
+            <li><a href="6CONTACT US.html">Contact</a></li>
+        </ul>
+    </div>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Complete SMS Solutions</h1>
+                <p>Discover all the amazing features that make FreeSMSPH the best choice for your messaging needs</p>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="container">
+                <h2 class="section-title">Our Powerful Features</h2>
+                <div class="features-grid" id="featuresGrid">
+                    <!-- Features will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section class="who-we-are">
+            <div class="container">
+                <div class="content-grid">
+                    <div class="content-text">
+                        <h2>Who We Are</h2>
+                        <p>FreeSMSPH is the Philippines' leading free SMS service provider, dedicated to keeping Filipinos connected without the burden of high messaging costs.</p>
+                        <p>Founded by a team of passionate Filipino developers and telecommunications experts, we understand the unique communication needs of our kababayans both locally and abroad.</p>
+                        <p>Our mission is to make communication accessible to everyone, regardless of their financial situation or location. We believe that staying connected with family and friends should never be a luxury.</p>
+                    </div>
+                    <div class="content-visual">
+                        <div class="visual-card">
+                            <div class="icon" aria-hidden="true">🇵🇭</div>
+                            <figure class="visual-figure">
+                                <img src="https://images.pexels.com/photos/1482101/pexels-photo-1482101.jpeg"
+                                     alt="Made in the Philippines - FreeSMSPH"
+                                     loading="lazy"
+                                     class="visual-img">
+                            </figure>
+                            <h3>Made in the Philippines</h3>
+                            <p>Built by Filipinos, for Filipinos. We understand your communication needs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="what-we-do">
+            <div class="container">
+                <div class="content-grid">
+                    <div class="content-visual">
+                        <div class="visual-card">
+                            <div class="icon" aria-hidden="true">💬</div>
+                            <figure class="visual-figure">
+                                <img src="https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg"
+                                     alt="Connecting Hearts - FreeSMSPH"
+                                     loading="lazy"
+                                     class="visual-img">
+                            </figure>
+                            <h3>Connecting Hearts</h3>
+                            <p>Bringing families and friends closer through free, reliable communication.</p>
+                        </div>
+                    </div>
+                    <div class="content-text">
+                        <h2>What We Do</h2>
+                        <p>We provide complete SMS services to help Filipinos stay connected with their loved ones. Our platform supports all major networks in the Philippines including Globe, Smart, Sun, TNT, and TM.</p>
+                        <p>Beyond personal messaging, we also offer business solutions including bulk SMS services, API integrations for developers, and enterprise communication tools for organizations.</p>
+                        <p>Our advanced technology ensures fast, reliable message delivery while maintaining the highest standards of security and privacy for all our users.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <div class="container">
+                <h2>Trusted by Thousands</h2>
+                <p>Join our growing community of satisfied users</p>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FreeSMSPH</h4>
+                    <p>The Philippines' most trusted SMS service.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="2FEATURE.html">Features</a>
+                    <a href="3PRICING.html">Pricing</a>
+                    <a href="5ABOUT US.html">About Us</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="6CONTACT US.html">Contact Us</a>
+                    <a href="5ABOUT US.html">FAQ</a>
+                    <a href="#">Help Center</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <a href="https://www.facebook.com/TheMoonProject0121/">Facebook</a>
+                    <a href="https://www.threads.com/@themoon_project0121">Twitter</a>
+                    <a href="https://www.instagram.com/themoonproject2025">Instagram</a>
+                    <a href="https://www.tiktok.com/@themoonproject21">Tiktok</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FreeSMSPH. All rights reserved. | Made with ❤️ in the Philippines</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const mobileClose = document.getElementById('mobileClose');
+
+        function openMobileSidebar() {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            mobileSidebar.classList.remove('open');
+        // Cursor animation removed
+
+        // Application data
+        const featuresData = [
+            {
+                icon: '📱',
+                title: 'Free SMS Service',
+                description: 'Enjoy SMS messaging to all Philippine networks. Get your first 5 messages free of charge.',
+                features: [
+                    'No registration fees',
+                    'No hidden charges', 
+                    'Unlimited daily messages',
+                    'All Philippine networks supported'
+                ]
+            },
+            {
+                icon: '🎙️',
+                title: 'Voice Messages',
+                description: 'Send voice messages and make voice calls through our advanced communication platform.',
+                features: [
+                    'Crystal clear voice quality',
+                    'Record voice messages',
+                    'Voice-to-text conversion',
+                    'International calling'
+                ]
+            },
+            {
+                icon: '📊',
+                title: 'Analytics & Reports', 
+                description: 'Track your messaging performance with detailed analytics and comprehensive reports.',
+                features: [
+                    'Delivery rate tracking',
+                    'Usage statistics',
+                    'Cost analysis',
+                    'Custom reporting'
+                ]
+            },
+            {
+                icon: '🛡️',
+                title: 'Security & Privacy',
+                description: 'Your data and messages are protected with enterprise-grade security measures.',
+                features: [
+                    'End-to-end encryption',
+                    'GDPR compliant',
+                    'No data logging',
+                    'Secure API authentication'
+                ]
+            },
+            {
+                icon: '🌍',
+                title: 'Multi-Platform Support',
+                description: 'Access our services from any device, anywhere, anytime with our multi-platform support.',
+                features: [
+                    'Web-based interface',
+                    'Mobile applications',
+                    'Desktop software', 
+                    'API integrations'
+                ]
+            }
+        ];
+
+        const statsData = [
+            { number: '1M+', label: 'Messages Sent Daily' },
+            { number: '50K+', label: 'Active Users' },
+            { number: '99.9%', label: 'Uptime' },
+            { number: '24/7', label: 'Customer Support' }
+        ];
+
+        // DOM manipulation utilities
+        function createElement(tag, className = '', content = '') {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            if (content) element.textContent = content;
+            return element;
+        }
+
+        // Render features
+        function renderFeatures() {
+            const featuresGrid = document.getElementById('featuresGrid');
+            if (!featuresGrid) return;
+            
+            featuresData.forEach(feature => {
+                const card = createElement('div', 'feature-card');
+                
+                const icon = createElement('div', 'feature-icon', feature.icon);
+                const title = createElement('h3', '', feature.title);
+                const description = createElement('p', '', feature.description);
+                const list = createElement('ul', 'feature-list');
+                
+                feature.features.forEach(item => {
+                    const listItem = createElement('li', '', item);
+                    list.appendChild(listItem);
+                });
+                
+                card.appendChild(icon);
+                card.appendChild(title);
+                card.appendChild(description);
+                card.appendChild(list);
+                
+                featuresGrid.appendChild(card);
+            });
+        }
+
+        // Render stats
+        function renderStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            if (!statsGrid) return;
+            
+            statsData.forEach(stat => {
+                const card = createElement('div', 'stat-card');
+                const number = createElement('span', 'stat-number', stat.number);
+                const label = createElement('span', '', stat.label);
+                
+                card.appendChild(number);
+                card.appendChild(label);
+                statsGrid.appendChild(card);
+            });
+        }
+
+        // Toast notification utility
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = createElement('div', 'toast', message);
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Authentication state management
+        function updateAuthState() {
+            const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            const userUsername = localStorage.getItem('userUsername') || '';
+            const userFirstName = localStorage.getItem('userFirstName') || '';
+            
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userAvatarElement = document.getElementById('userAvatar');
+            const dropdownFullname = document.getElementById('dropdownFullname');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+
+            if (isLoggedIn && authButtons && userMenu) {
+                authButtons.style.display = 'none';
+                userMenu.classList.add('active');
+                
+                if (userNameDisplay) userNameDisplay.textContent = userName;
+                if (dropdownFullname) dropdownFullname.textContent = userName;
+                if (dropdownUsername) dropdownUsername.textContent = '@' + userUsername;
+                
+                if (userAvatarElement) {
+                    const avatarLetter = userFirstName.charAt(0).toUpperCase() || userName.charAt(0).toUpperCase() || 'U';
+                    userAvatarElement.textContent = avatarLetter;
+                }
+            } else if (authButtons && userMenu) {
+                authButtons.style.display = 'flex';
+                userMenu.classList.remove('active');
+            }
+        }
+
+        // Event handlers
+        function setupEventHandlers() {
+            // User dropdown toggle
+            const userToggle = document.getElementById('userToggle');
+            if (userToggle) {
+                userToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const userMenu = document.getElementById('userMenu');
+                    if (userMenu) {
+                        userMenu.classList.toggle('open');
+                    }
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const userMenu = document.getElementById('userMenu');
+                const userToggle = document.getElementById('userToggle');
+                
+                if (userMenu && userToggle && !userMenu.contains(e.target) && !userToggle.contains(e.target)) {
+                    userMenu.classList.remove('open');
+                }
+            });
+
+            // Logout functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Clear user data from localStorage
+                    ['userLoggedIn', 'userEmail', 'userName', 'userId', 'userUsername', 'userFirstName', 'userLastName'].forEach(key => {
+                        localStorage.removeItem(key);
+                    });
+                    
+                    // Close dropdown
+                    const userMenu = document.getElementById('userMenu');
+                    if (userMenu) {
+                        userMenu.classList.remove('open');
+                    }
+                    
+                    showToast('Successfully logged out!');
+                    
+                    setTimeout(() => {
+                        updateAuthState();
+                    }, 500);
+                });
+            }
+
+            // Demo login functionality
+            const signInBtn = document.querySelector('.btn-secondary');
+            if (signInBtn) {
+                signInBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Demo login
+                    localStorage.setItem('userLoggedIn', 'true');
+                    localStorage.setItem('userName', 'John Doe');
+                    localStorage.setItem('userUsername', 'johndoe');
+                    localStorage.setItem('userFirstName', 'John');
+                    localStorage.setItem('userLastName', 'Doe');
+                    localStorage.setItem('userEmail', 'john@example.com');
+                    
+                    showToast('Welcome back, John!');
+                    
+                    setTimeout(() => {
+                        updateAuthState();
+                    }, 500);
+                });
+            }
+
+            // Demo signup functionality
+            const signUpBtn = document.querySelector('.btn-primary');
+            if (signUpBtn) {
+                signUpBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Demo signup
+                    localStorage.setItem('userLoggedIn', 'true');
+                    localStorage.setItem('userName', 'Maria Santos');
+                    localStorage.setItem('userUsername', 'mariasantos');
+                    localStorage.setItem('userFirstName', 'Maria');
+                    localStorage.setItem('userLastName', 'Santos');
+                    localStorage.setItem('userEmail', 'maria@example.com');
+                    
+                    showToast('Account created successfully! Welcome, Maria!');
+                    
+                    setTimeout(() => {
+                        updateAuthState();
+                    }, 500);
+                });
+            }
+        }
+
+        // Cursor animation
+        function setupCursor() {
+            const cursor = document.querySelector('.cursor');
+            const follower = document.querySelector('.cursor-follower');
+
+            if (cursor && follower) {
+                document.addEventListener('mousemove', (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                    
+                    setTimeout(() => {
+                        follower.style.left = e.clientX + 'px';
+                        follower.style.top = e.clientY + 'px';
+                    }, 50);
+                });
+            }
+        }
+
+        // Animation on scroll
+        function setupScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.feature-card, .section-title, .stat-card').forEach(el => {
+                observer.observe(el);
+            });
+        }
+function disableInspect() {
+    // I-disable ang right-click context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // I-block ang common keyboard shortcuts (F12, Ctrl+Shift+I/J/C, Ctrl+U)
+    document.addEventListener('keydown', function(e) {
+        // e.key case-insensitive sa modern browsers; gamitin e.key at e.code depende sa support
+        if (e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+            (e.ctrlKey && (e.key === 'u' || e.key === 'U'))
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            // optional: small feedback (remove if you don't want alerts)
+            // alert('Right click / devtools is disabled on this page.');
+        }
+    });
+
+    // Simple detection kung nakabukas ang devtools (hindi 100% reliable)
+    let devtoolsOpen = false;
+    const threshold = 160; // tweak depende sa kailangan
+    function checkDevTools() {
+        const widthDiff = window.outerWidth - window.innerWidth;
+        const heightDiff = window.outerHeight - window.innerHeight;
+        if (widthDiff > threshold || heightDiff > threshold) {
+            if (!devtoolsOpen) {
+                devtoolsOpen = true;
+                // Action kapag nakita devtools: halimbawa i-show toast o i-redirect (maingat!)
+                // showToast('Please close developer tools to continue.'); // kung meron kang showToast()
+                console.warn('Devtools likely open');
+            }
+        } else {
+            devtoolsOpen = false;
+        }
+    }
+    window.addEventListener('resize', checkDevTools);
+    // periodic check (mas mahal sa performance pero madalas ginagamit)
+    setInterval(checkDevTools, 1000);
+}
+
+        // Initialize application
+        function init() {
+            renderFeatures();
+            renderStats();
+            updateAuthState();
+            setupEventHandlers();
+            setupScrollAnimations();
+            disableInspect();
+        }
+
+        // Start the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

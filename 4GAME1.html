@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Crossword Guess - FreeSMSPH Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffba08);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* User Dropdown Styles */
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .user-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .user-menu.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+            z-index: 1001;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 0.3rem;
+        }
+
+        .dropdown-header .user-fullname {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .dropdown-header .user-username {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #ff6b35;
+            padding-left: 1.5rem;
+        }
+
+        .dropdown-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee;
+            color: #c82333;
+        }
+
+        /* Mobile Sidebar */
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            z-index: 1002;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .mobile-sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .mobile-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav-links li {
+            margin: 0;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-nav-links a:hover,
+        .mobile-nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+            padding-left: 2.5rem;
+        }
+
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        main {
+            margin-top: 80px;
+            padding: clamp(1.5rem, 4vw, 2rem) 0;
+            min-height: calc(100vh - 160px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            animation: slideInUp 1s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .game-header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header p {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .letter-bank {
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeInScale 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .letter-bank h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+        }
+
+        .available-letters {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .letter-badge {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.8rem, 2vw, 1rem);
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: clamp(1rem, 1.5vw, 1.2rem);
+            min-width: clamp(35px, 8vw, 40px);
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .crossword-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(1.5rem, 4vw, 2rem);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeInScale 1s ease-out 0.6s both;
+        }
+
+        .crossword-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            max-width: min(300px, 70vw);
+            margin: 0 auto;
+            padding: 1rem;
+            background: #ddd;
+            border-radius: 15px;
+        }
+
+        .crossword-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border: none;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            background: white;
+            color: #333;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .crossword-cell:focus {
+            outline: 3px solid #ff6b35;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .crossword-cell:hover {
+            background: #f8f9fa;
+        }
+
+        .crossword-cell.blocked {
+            background: #333;
+            cursor: not-allowed;
+        }
+
+        .crossword-cell.correct {
+            background: #28a745;
+            color: white;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .crossword-cell.incorrect {
+            background: #dc3545;
+            color: white;
+            animation: incorrectShake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes incorrectShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            animation: fadeInScale 1s ease-out 0.9s both;
+        }
+
+        .word-hints {
+            background: rgba(255, 255, 255, 0.95);
+            padding: clamp(1rem, 3vw, 1.5rem);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            animation: fadeInScale 1s ease-out 1.2s both;
+        }
+
+        .word-hints h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+        }
+
+        .hints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: 1rem;
+        }
+
+        .hint-item {
+            background: #f8f9fa;
+            padding: clamp(0.6rem, 2vw, 0.8rem);
+            border-radius: 10px;
+            border-left: 4px solid #ff6b35;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin: 2rem 0;
+            display: none;
+            animation: successBounce 1s ease-out;
+            box-shadow: 0 15px 35px rgba(40, 167, 69, 0.3);
+        }
+
+        @keyframes successBounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+            40%, 43% { transform: translate3d(0, -20px, 0); }
+            70% { transform: translate3d(0, -10px, 0); }
+            90% { transform: translate3d(0, -4px, 0); }
+        }
+
+        .success-message h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: clamp(2rem, 5vw, 3rem) 0 1rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        .footer-section p {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            line-height: 1.6;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .footer-section a:hover {
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Enhanced Responsive Design */
+        @media (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+            
+            .crossword-grid {
+                max-width: min(280px, 75vw);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .auth-buttons {
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .user-name {
+                max-width: 80px;
+            }
+
+            .user-dropdown {
+                right: -10px;
+                min-width: 180px;
+            }
+
+            .game-container {
+                padding: 0 1rem;
+            }
+
+            .crossword-grid {
+                max-width: min(250px, 80vw);
+            }
+
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .game-controls .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .hints-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+
+            .mobile-sidebar {
+                width: 280px;
+                left: -280px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .user-toggle {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                max-width: 60px;
+            }
+
+            .user-dropdown {
+                right: -20px;
+                min-width: 160px;
+            }
+
+            .dropdown-item {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .game-container {
+                padding: 0 0.5rem;
+            }
+
+            .crossword-container, .letter-bank, .word-hints {
+                padding: 1rem;
+            }
+
+            .crossword-grid {
+                max-width: min(220px, 85vw);
+                gap: 2px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            .auth-buttons .btn {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-toggle {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+
+            .crossword-grid {
+                max-width: min(200px, 90vw);
+            }
+            
+            .letter-badge {
+                padding: 0.3rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .mobile-sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 1.5rem 0;
+            }
+
+            .mobile-sidebar-header {
+                padding: 0 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .mobile-nav-links a {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .mobile-nav-links a:hover,
+            .mobile-nav-links a.active {
+                padding-left: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="2FEATURE.html">Features</a></li>
+                <li><a href="3PRICING.html">Pricing</a></li>
+                <li><a href="5ABOUT US.html">About</a></li>
+                <li><a href="6CONTACT US.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-toggle" id="userToggle">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-fullname" id="dropdownFullname">Full Name</div>
+                        <div class="user-username" id="dropdownUsername">@username</div>
+                    </div>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">📊</span>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">💳</span>
+                        <span>Transaction</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item logout" id="logoutBtn">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <button class="mobile-menu" id="mobileMenuBtn">☰</button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <button class="mobile-close" id="mobileClose">✕</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="2FEATURE.html">Features</a></li>
+            <li><a href="3PRICING.html">Pricing</a></li>
+            <li><a href="5ABOUT US.html">About</a></li>
+            <li><a href="6CONTACT US.html">Contact</a></li>
+        </ul>
+    </div>
+
+    <main>
+        <div class="game-container">
+            <div class="game-header">
+                <h1>Word Crossword Guess</h1>
+                <p>Fill the crossword using only the letters provided below. Find the hidden words!</p>
+            </div>
+
+            <div class="letter-bank">
+                <h3>🔤 Available Letters</h3>
+                <div class="available-letters">
+                    <div class="letter-badge">S</div>
+                    <div class="letter-badge">T</div>
+                    <div class="letter-badge">A</div>
+                    <div class="letter-badge">R</div>
+                    <div class="letter-badge">E</div>
+                    <div class="letter-badge">O</div>
+                </div>
+            </div>
+
+            <div class="crossword-container">
+                <div class="crossword-grid" id="crossword-grid">
+                    <!-- Grid cells will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <button class="btn btn-primary" onclick="checkAnswers()">🔍 Check Answers</button>
+                <button class="btn btn-secondary" onclick="clearBoard()">🗑️ Clear Board</button>
+                <button class="btn btn-secondary" onclick="newGame()">🎲 New Game</button>
+            </div>
+
+            <div class="success-message" id="success-message">
+                <h2>🎉 Congratulations!</h2>
+                <p>You solved the crossword puzzle! Amazing job!</p>
+                <button class="btn btn-primary" onclick="newGame()" style="margin-top: 1rem;">Play Again</button>
+            </div>
+
+            <div class="word-hints" id="hints">
+                <h3>💡 Word Hints</h3>
+                <div class="hints-grid">
+                    <div class="hint-item"><strong>Horizontal:</strong> Celestial body that shines (4 letters)</div>
+                    <div class="hint-item"><strong>Vertical:</strong> Smell, fragrance (4 letters)</div>
+                    <div class="hint-item"><strong>Horizontal:</strong> Past tense of eat (3 letters)</div>
+                    <div class="hint-item"><strong>Vertical:</strong> Not tight, opposite of tight (5 letters)</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FreeSMSPH</h4>
+                    <p>The Philippines' most trusted SMS service.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="2FEATURE.html">Features</a>
+                    <a href="3PRICING.html">Pricing</a>
+                    <a href="5ABOUT US.html">About Us</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="6CONTACT US.html">Contact Us</a>
+                    <a href="5ABOUT US.html">FAQ</a>
+                    <a href="#">Help Center</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <a href="https://www.facebook.com/TheMoonProject0121/">Facebook</a>
+                    <a href="https://www.threads.com/@themoon_project0121">Twitter</a>
+                    <a href="https://www.instagram.com/themoonproject2025">Instagram</a>
+                    <a href="https://www.tiktok.com/@themoonproject21">Tiktok</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FreeSMSPH. All rights reserved. | Made with ❤️ in the Philippines</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const mobileClose = document.getElementById('mobileClose');
+
+        function openMobileSidebar() {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', openMobileSidebar);
+        mobileClose.addEventListener('click', closeMobileSidebar);
+        mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+        // Close sidebar on link click
+        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
+        });
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthState();
+            initGame();
+        });
+
+        // Toast notification function
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Update authentication state
+        function updateAuthState() {
+            const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            const userUsername = localStorage.getItem('userUsername') || '';
+            const userFirstName = localStorage.getItem('userFirstName') || '';
+            
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userAvatarElement = document.getElementById('userAvatar');
+            const dropdownFullname = document.getElementById('dropdownFullname');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+
+            if (isLoggedIn) {
+                // Hide auth buttons and show user menu
+                authButtons.style.display = 'none';
+                userMenu.classList.add('active');
+                
+                // Update user info display
+                userNameDisplay.textContent = userName;
+                dropdownFullname.textContent = userName;
+                dropdownUsername.textContent = '@' + userUsername;
+                
+                // Create avatar from first letter of name
+                const avatarLetter = userFirstName.charAt(0).toUpperCase() || userName.charAt(0).toUpperCase() || 'U';
+                userAvatarElement.textContent = avatarLetter;
+            } else {
+                // Show auth buttons and hide user menu
+                authButtons.style.display = 'flex';
+                userMenu.classList.remove('active');
+            }
+        }
+
+        // User dropdown toggle
+        document.getElementById('userToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userToggle = document.getElementById('userToggle');
+            
+            if (!userMenu.contains(e.target) && !userToggle.contains(e.target)) {
+                userMenu.classList.remove('open');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Clear all user data from localStorage
+            localStorage.removeItem('userLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userUsername');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            
+            // Close dropdown
+            document.getElementById('userMenu').classList.remove('open');
+            
+            // Show logout toast
+            showToast('Successfully logged out!');
+            
+            // Update UI after a short delay
+            setTimeout(() => {
+                updateAuthState();
+            }, 500);
+        });
+
+        // Game data and state
+        const gameData = {
+            availableLetters: ['S', 'T', 'A', 'R', 'E', 'O'],
+            gridSize: 5,
+            // Answer grid: 0 = blocked, letter = answer
+            answerGrid: [
+                ['S', 'T', 'A', 'R', 0],
+                [0, 0, 0, 0, 0],
+                ['R', 'O', 'S', 'E', 0],
+                ['0', 0, 0, 'A', 0],
+                [0, 0, 0, 'T', 0]
+            ],
+            currentGrid: Array(5).fill().map(() => Array(5).fill('')),
+            isComplete: false
+        };
+
+        // Initialize the game
+        function initGame() {
+            createGrid();
+            setupEventListeners();
+        }
+
+        // Create the crossword grid
+        function createGrid() {
+            const grid = document.getElementById('crossword-grid');
+            grid.innerHTML = '';
+
+            for (let row = 0; row < gameData.gridSize; row++) {
+                for (let col = 0; col < gameData.gridSize; col++) {
+                    const cell = document.createElement('input');
+                    cell.type = 'text';
+                    cell.maxLength = 1;
+                    cell.className = 'crossword-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    // Check if cell should be blocked
+                    if (gameData.answerGrid[row][col] === 0) {
+                        cell.className += ' blocked';
+                        cell.disabled = true;
+                    } else {
+                        setupCellEvents(cell);
+                    }
+
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // Setup events for each cell
+        function setupCellEvents(cell) {
+            cell.addEventListener('input', function(e) {
+                const value = e.target.value.toUpperCase();
+                const row = parseInt(e.target.dataset.row);
+                const col = parseInt(e.target.dataset.col);
+
+                // Check if letter is allowed
+                if (value && !gameData.availableLetters.includes(value)) {
+                    e.target.value = '';
+                    showMessage('❌ You can only use the provided letters!', 'error');
+                    return;
+                }
+
+                // Update game state
+                gameData.currentGrid[row][col] = value;
+                e.target.value = value;
+
+                // Move to next cell
+                if (value) {
+                    moveToNextCell(row, col);
+                }
+
+                // Clear any previous styling
+                e.target.classList.remove('correct', 'incorrect');
+            });
+
+            cell.addEventListener('keydown', function(e) {
+                const row = parseInt(e.target.dataset.row);
+                const col = parseInt(e.target.dataset.col);
+
+                if (e.key === 'Backspace' && !e.target.value) {
+                    moveToPreviousCell(row, col);
+                } else if (e.key === 'ArrowRight') {
+                    moveToNextCell(row, col);
+                } else if (e.key === 'ArrowLeft') {
+                    moveToPreviousCell(row, col);
+                } else if (e.key === 'ArrowDown') {
+                    moveToCell(row + 1, col);
+                } else if (e.key === 'ArrowUp') {
+                    moveToCell(row - 1, col);
+                }
+            });
+        }
+
+        // Move to next available cell
+        function moveToNextCell(currentRow, currentCol) {
+            for (let row = currentRow; row < gameData.gridSize; row++) {
+                const startCol = (row === currentRow) ? currentCol + 1 : 0;
+                for (let col = startCol; col < gameData.gridSize; col++) {
+                    if (gameData.answerGrid[row][col] !== 0) {
+                        focusCell(row, col);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Move to previous available cell
+        function moveToPreviousCell(currentRow, currentCol) {
+            for (let row = currentRow; row >= 0; row--) {
+                const startCol = (row === currentRow) ? currentCol - 1 : gameData.gridSize - 1;
+                for (let col = startCol; col >= 0; col--) {
+                    if (gameData.answerGrid[row][col] !== 0) {
+                        focusCell(row, col);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Move to specific cell
+        function moveToCell(row, col) {
+            if (row >= 0 && row < gameData.gridSize && col >= 0 && col < gameData.gridSize) {
+                if (gameData.answerGrid[row][col] !== 0) {
+                    focusCell(row, col);
+                }
+            }
+        }
+
+        // Focus on a specific cell
+        function focusCell(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (cell && !cell.disabled) {
+                cell.focus();
+            }
+        }
+
+        // Check answers
+        function checkAnswers() {
+            let correctCount = 0;
+            let totalCells = 0;
+
+            for (let row = 0; row < gameData.gridSize; row++) {
+                for (let col = 0; col < gameData.gridSize; col++) {
+                    if (gameData.answerGrid[row][col] !== 0) {
+                        totalCells++;
+                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        const userAnswer = gameData.currentGrid[row][col];
+                        const correctAnswer = gameData.answerGrid[row][col];
+
+                        cell.classList.remove('correct', 'incorrect');
+
+                        if (userAnswer === correctAnswer) {
+                            cell.classList.add('correct');
+                            correctCount++;
+                        } else if (userAnswer) {
+                            cell.classList.add('incorrect');
+                        }
+                    }
+                }
+            }
+
+            // Show results
+            if (correctCount === totalCells) {
+                setTimeout(() => {
+                    document.getElementById('success-message').style.display = 'block';
+                    gameData.isComplete = true;
+                }, 500);
+                showMessage('🎉 Perfect! You solved the puzzle!', 'success');
+            } else {
+                showMessage(`📊 ${correctCount}/${totalCells} correct. Keep trying!`, 'info');
+            }
+        }
+
+        // Clear the board
+        function clearBoard() {
+            gameData.currentGrid = Array(5).fill().map(() => Array(5).fill(''));
+            
+            document.querySelectorAll('.crossword-cell:not(.blocked)').forEach(cell => {
+                cell.value = '';
+                cell.classList.remove('correct', 'incorrect');
+            });
+
+            document.getElementById('success-message').style.display = 'none';
+            gameData.isComplete = false;
+            showMessage('🧹 Board cleared! Start fresh!', 'info');
+        }
+
+        // Start a new game
+        function newGame() {
+            clearBoard();
+            
+            // You could randomize the puzzle here
+            // For this example, we'll just clear and show a message
+            showMessage('🎮 New game started! Good luck!', 'success');
+            
+            // Focus on first available cell
+            setTimeout(() => {
+                for (let row = 0; row < gameData.gridSize; row++) {
+                    for (let col = 0; col < gameData.gridSize; col++) {
+                        if (gameData.answerGrid[row][col] !== 0) {
+                            focusCell(row, col);
+                            return;
+                        }
+                    }
+                }
+            }, 500);
+        }
+
+        // Show temporary message
+        function showMessage(message, type) {
+            // Remove any existing message
+            const existingMessage = document.querySelector('.temp-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'temp-message';
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#ff6b35'};
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 25px;
+                font-weight: bold;
+                z-index: 10000;
+                animation: messageSlide 3s ease-out forwards;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            // Add CSS animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes messageSlide {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Remove message after animation
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+                if (style.parentNode) {
+                    style.remove();
+                }
+            }, 3000);
+        }
+
+        // Setup general event listeners
+        function setupEventListeners() {
+            // Prevent form submission on Enter
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && e.target.classList.contains('crossword-cell')) {
+                    e.preventDefault();
+                    checkAnswers();
+                }
+            });
+        }
+
+        // Cursor animation
+        // Cursor animation removed
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.letter-bank, .crossword-container, .word-hints').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

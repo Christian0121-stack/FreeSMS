@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - FreeSMSPH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .user-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .user-menu.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+            z-index: 1001;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 0.3rem;
+        }
+
+        .dropdown-header .user-fullname {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .dropdown-header .user-username {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #ff6b35;
+            padding-left: 1.5rem;
+        }
+
+        .dropdown-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee;
+            color: #c82333;
+        }
+
+        /* Mobile Sidebar */
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            z-index: 1002;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .mobile-sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .mobile-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav-links li {
+            margin: 0;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-nav-links a:hover,
+        .mobile-nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+            padding-left: 2.5rem;
+        }
+
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: clamp(2rem, 5vw, 4rem) 0 clamp(1rem, 3vw, 2rem);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .page-header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .page-header p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out 0.3s both;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+
+        .profile-section {
+            padding: clamp(2rem, 5vw, 4rem) 0;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: clamp(2rem, 4vw, 3rem);
+            margin-bottom: clamp(2rem, 4vw, 3rem);
+        }
+
+        .profile-sidebar {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            height: fit-content;
+            animation: fadeInLeft 1s ease-out;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-img {
+            width: clamp(80px, 15vw, 120px);
+            height: clamp(80px, 15vw, 120px);
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: white;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .profile-name {
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-email {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: clamp(0.8rem, 2vw, 1rem);
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            font-weight: bold;
+            color: #ff6b35;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: clamp(0.7rem, 1.2vw, 0.8rem);
+            color: #666;
+        }
+
+        .profile-menu {
+            list-style: none;
+        }
+
+        .profile-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+        }
+
+        .profile-menu a:hover, .profile-menu a.active {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .profile-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: clamp(1.5rem, 3vw, 2rem);
+            animation: fadeInRight 1s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .content-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .content-header h2 {
+            color: #ff6b35;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(0.5rem, 1vw, 1rem);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: clamp(1rem, 2vw, 2rem);
+            margin-bottom: clamp(1rem, 2vw, 2rem);
+        }
+
+        .footer-section h4 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .footer-section a:hover {
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+            .profile-grid {
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .auth-buttons {
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .user-name {
+                max-width: 80px;
+            }
+
+            .user-dropdown {
+                right: -10px;
+                min-width: 180px;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+
+            /* Footer responsive adjustments */
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .user-toggle {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                max-width: 60px;
+            }
+
+            .user-dropdown {
+                right: -20px;
+                min-width: 160px;
+            }
+
+            .dropdown-item {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Mobile sidebar adjustments */
+            .mobile-sidebar {
+                width: 280px;
+                left: -280px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            .auth-buttons .btn {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-toggle {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+
+            /* Mobile sidebar for very small screens */
+            .mobile-sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 1.5rem 0;
+            }
+
+            .mobile-sidebar-header {
+                padding: 0 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .mobile-nav-links a {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .mobile-nav-links a:hover,
+            .mobile-nav-links a.active {
+                padding-left: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="2FEATURE.html">Features</a></li>
+                <li><a href="3PRICING.html">Pricing</a></li>
+                <li><a href="5ABOUT US.html">About</a></li>
+                <li><a href="6CONTACT US.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-toggle" id="userToggle">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-fullname" id="dropdownFullname">Full Name</div>
+                        <div class="user-username" id="dropdownUsername">@username</div>
+                    </div>
+                    <a href="7PROFILE.html" class="dropdown-item">
+                        <span class="icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="8HISTORY.html" class="dropdown-item">
+                        <span class="icon">📊</span>
+                        <span>History</span>
+                    </a>
+                    <a href="9Transaction.html" class="dropdown-item">
+                        <span class="icon">💳</span>
+                        <span>Transaction</span>
+                    </a>
+                    <a href="10SETTINGS.html" class="dropdown-item">
+                        <span class="icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item logout" id="logoutBtn">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <button class="mobile-menu" id="mobileMenuBtn">☰</button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <button class="mobile-close" id="mobileClose">✕</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="2FEATURE.html">Features</a></li>
+            <li><a href="3PRICING.html">Pricing</a></li>
+            <li><a href="5ABOUT US.html">About</a></li>
+            <li><a href="6CONTACT US.html">Contact</a></li>
+        </ul>
+    </div>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>My Profile</h1>
+                <p>Manage your account settings and view your SMS activity</p>
+            </div>
+        </section>
+
+        <section class="profile-section">
+            <div class="container">
+                <div class="profile-grid">
+                    <div class="profile-sidebar">
+                        <div class="profile-avatar">
+                            <div class="profile-avatar-img" id="profileAvatarImg">JD</div>
+                            <div class="profile-name" id="profileName">Juan Dela Cruz</div>
+                            <div class="profile-email" id="profileEmail">juan.delacruz@email.com</div>
+                        </div>
+
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">1,247</span>
+                                <span class="stat-label">SMS Sent</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">45</span>
+                                <span class="stat-label">Days Active</span>
+                            </div>
+                        </div>
+
+                        <ul class="profile-menu">
+                            <li><a href="#" class="active"><span>⚙️</span> Account Settings</a></li>
+                            <li><a href="8HISTORY.html"><span>📱</span> SMS History</a></li>
+                            <li><a href="#"><span>🔔</span> Notifications</a></li>
+                            <li><a href="#"><span>🔒</span> Privacy & Security</a></li>
+                            <li><a href="9Transaction.html"><span>💳</span> Billing</a></li>
+                            <li><a href="#"><span>❓</span> Help & Support</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="profile-content">
+                        <div class="content-header">
+                            <h2>Account Settings</h2>
+                            <p>Update your personal information and preferences</p>
+                        </div>
+
+                        <form>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" id="firstName" name="firstName" value="Juan">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name</label>
+                                    <input type="text" id="lastName" name="lastName" value="Dela Cruz">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" value="juan.delacruz@email.com">
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" value="09123456789">
+                                </div>
+                                <div class="form-group">
+                                    <label for="birthdate">Birthday</label>
+                                    <input type="date" id="birthdate" name="birthdate" value="1990-01-15">
+                                </div>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="gender">Gender</label>
+                                    <select id="gender" name="gender">
+                                        <option value="male" selected>Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                        <option value="prefer-not-to-say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="location">Location</label>
+                                    <input type="text" id="location" name="location" value="Manila, Philippines">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" name="bio" placeholder="Tell us about yourself...">Freelance developer from Manila. Love using FreeSMSPH to stay connected with family and friends!</textarea>
+                            </div>
+
+                            <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 150px;">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" style="flex: 1; min-width: 150px;">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FreeSMSPH</h4>
+                    <p>The Philippines' most trusted free SMS service. Send messages to your loved ones without any cost!</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="2FEATURE.html">Features</a>
+                    <a href="3PRICING.html">Pricing</a>
+                    <a href="5ABOUT US.html">About Us</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="6CONTACT US.html">Contact Us</a>
+                    <a href="5ABOUT US.html">FAQ</a>
+                    <a href="#">Help Center</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <a href="https://www.facebook.com/TheMoonProject0121/">Facebook</a>
+                    <a href="https://www.threads.com/@themoon_project0121">Twitter</a>
+                    <a href="https://www.instagram.com/themoonproject2025">Instagram</a>
+                    <a href="https://www.tiktok.com/@themoonproject21">Tiktok</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FreeSMSPH. All rights reserved. | Made with ❤️ in the Philippines</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const mobileClose = document.getElementById('mobileClose');
+
+        function openMobileSidebar() {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', openMobileSidebar);
+        mobileClose.addEventListener('click', closeMobileSidebar);
+        mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+        // Close sidebar on link click
+        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthState();
+        });
+
+        function showToast(message, success = true) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.background = success ? 'linear-gradient(135deg, #28a745, #20c997)' : 'linear-gradient(135deg,#dc3545,#ff6b6b)';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateAuthState() {
+            const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            const userUsername = localStorage.getItem('userUsername') || '';
+            const userFirstName = localStorage.getItem('userFirstName') || '';
+            const userEmail = localStorage.getItem('userEmail') || '';
+            
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userAvatarElement = document.getElementById('userAvatar');
+            const dropdownFullname = document.getElementById('dropdownFullname');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+
+            if (isLoggedIn) {
+                authButtons.style.display = 'none';
+                userMenu.classList.add('active');
+
+                userNameDisplay.textContent = userName;
+                dropdownFullname.textContent = userName;
+                dropdownUsername.textContent = '@' + userUsername;
+
+                const avatarLetter = (userFirstName && userFirstName.charAt(0).toUpperCase()) || userName.charAt(0).toUpperCase() || 'U';
+                userAvatarElement.textContent = avatarLetter;
+
+                // Update profile display
+                const profileAvatarImg = document.getElementById('profileAvatarImg');
+                const profileName = document.getElementById('profileName');
+                const profileEmail = document.getElementById('profileEmail');
+                
+                if (profileAvatarImg) profileAvatarImg.textContent = avatarLetter;
+                if (profileName) profileName.textContent = userName;
+                if (profileEmail) profileEmail.textContent = userEmail;
+            } else {
+                authButtons.style.display = 'flex';
+                userMenu.classList.remove('active');
+                // Redirect to login if not logged in
+                window.location.href = 'login.html';
+            }
+        }
+
+        document.getElementById('userToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userToggle = document.getElementById('userToggle');
+            
+            if (!userMenu.contains(e.target) && !userToggle.contains(e.target)) {
+                userMenu.classList.remove('open');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('userLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userUsername');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            document.getElementById('userMenu').classList.remove('open');
+            showToast('Successfully logged out!');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        });
+
+        document.querySelectorAll('.profile-menu a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!link.getAttribute('href').startsWith('http') && link.getAttribute('href') !== '#' && !link.getAttribute('href').includes('.html')) {
+                    e.preventDefault();
+                    document.querySelectorAll('.profile-menu a').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    const contentHeader = document.querySelector('.content-header h2');
+                    const icon = link.querySelector('span').textContent;
+                    const text = link.textContent.trim();
+                    contentHeader.textContent = text;
+                }
+            });
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showToast('Profile updated successfully!');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeSMSPH - Free SMS Service Philippines</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff6b35;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: all 0.1s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-follower {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #ff6b35;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transition: all 0.15s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+        }
+
+        .user-info span {
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        main {
+            margin-top: 80px;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+
+        .sms-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .sms-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .sms-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.15);
+            border-color: #ff6b35;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ff6b35;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .phone-input-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .phone-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .phone-input:focus-within {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .phone-prefix {
+            background: #ff6b35;
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .phone-number {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .import-btn {
+            background: linear-gradient(135deg, #6f42c1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-left: 1rem;
+        }
+
+        .import-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(111, 66, 193, 0.3);
+        }
+
+        .phone-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            min-height: 120px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .phone-list.has-numbers {
+            border-style: solid;
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .phone-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .message-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .message-textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .character-count {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .character-count.warning {
+            color: #ff6b35;
+        }
+
+        .character-count.error {
+            color: #dc3545;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .send-btn:hover::before {
+            left: 100%;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #dc3545, #e74c3c);
+        }
+
+        .toast.warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #333;
+        }
+
+        .features {
+            padding: clamp(3rem, 8vw, 5rem) 0;
+            background: #f8f9fa;
+            margin-top: 3rem;
+        }
+
+        .section-title-main {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #ff6b35;
+            margin-bottom: clamp(2rem, 5vw, 3rem);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .feature-card {
+            background: white;
+            padding: clamp(1.5rem, 3vw, 2rem);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.2);
+        }
+
+        .feature-icon {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(50px, 8vw, 60px);
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            color: white;
+        }
+
+        .feature-card h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+        }
+
+        .feature-card p {
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            line-height: 1.6;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        /* Import file input */
+        .import-input {
+            display: none;
+        }
+
+        /* Tablet Styles */
+        @media (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+            
+            .sms-sections {
+                gap: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        /* Small Tablet / Large Mobile */
+        @media (max-width: 768px) {
+            .cursor, .cursor-follower {
+                display: none;
+            }
+            
+            body {
+                cursor: auto;
+            }
+            
+            body * {
+                cursor: auto !important;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .auth-buttons {
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .sms-sections {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .phone-input-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .add-btn, .import-btn {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .sms-section {
+                padding: 1.5rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .phone-input-container {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="welcomeMessage">Welcome!</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+            <button class="mobile-menu">☰</button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <!-- SMS Sections -->
+            <div class="sms-sections">
+                <!-- Single SMS Section -->
+                <div class="sms-section">
+                    <div class="section-header">
+                        <div class="section-icon">📱</div>
+                        <h2 class="section-title">Single SMS</h2>
+                    </div>
+
+                    <form id="singleSmsForm">
+                        <div class="form-group">
+                            <label for="singlePhoneNumber">Phone Number *</label>
+                            <div class="phone-input">
+                                <div class="phone-prefix">+63</div>
+                                <input 
+                                    type="tel" 
+                                    id="singlePhoneNumber" 
+                                    class="phone-number" 
+                                    placeholder="9XX-XXX-XXXX" 
+                                    maxlength="10"
+                                    pattern="[9][0-9]{9}"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="singleMessage">Message *</label>
+                            <textarea 
+                                id="singleMessage" 
+                                class="message-textarea" 
+                                placeholder="Type your message here..." 
+                                maxlength="160"
+                                required
+                            ></textarea>
+                            <div class="character-count">
+                                <span id="singleCharCount">0</span>/160 characters
+                            </div>
+                        </div>
+
+                        <button type="submit" class="send-btn" id="singleSendBtn">
+                            Send SMS 📤
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Bulk SMS Section -->
+                <div class="sms-section">
+                    <div class="section-header">
+                        <div class="section-icon">📋</div>
+                        <h2 class="section-title">Bulk SMS</h2>
+                    </div>
+
+                    <form id="bulkSmsForm">
+                        <div class="form-group">
+                            <label for="bulkPhoneNumber">Add Phone Numbers</label>
+                            <div class="phone-input-container">
+                                <div class="phone-input">
+                                    <div class="phone-prefix">+63</div>
+                                    <input 
+                                        type="tel" 
+                                        id="bulkPhoneNumber" 
+                                        class="phone-number" 
+                                        placeholder="9XX-XXX-XXXX" 
+                                        maxlength="10"
+                                        pattern="[9][0-9]{9}"
+                                    >
+                                </div>
+                                <button type="button" class="add-btn" onclick="addPhoneNumber()">
+                                    Add
+                                </button>
+                                <button type="button" class="import-btn" onclick="importPhoneNumbers()">
+                                    Import
+                                </button>
+                                <input type="file" id="importFile" class="import-input" accept=".txt,.csv" onchange="handleFileImport(event)">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Numbers List (<span id="phoneCount">0</span> numbers)</label>
+                            <div class="phone-list" id="phoneList">
+                                <p style="color: #666; text-align: center; margin: 2rem 0;">No phone numbers added yet. Add numbers above or import from file.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bulkMessage">Message *</label>
+                            <textarea 
+                                id="bulkMessage" 
+                                class="message-textarea" 
+                                placeholder="Type your bulk message here..." 
+                                maxlength="160"
+                                required
+                            ></textarea>
+                            <div class="character-count">
+                                <span id="bulkCharCount">0</span>/160 characters
+                            </div>
+                        </div>
+
+                        <button type="submit" class="send-btn" id="bulkSendBtn" disabled>
+                            Send Bulk SMS 📡
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <h2 class="section-title-main">Bakit FreeSMSPH?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>Completely FREE</h3>
+                        <p>Walang hidden charges, walang registration fees. Send unlimited SMS messages without paying a single peso!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Lightning Fast</h3>
+                        <p>Your messages are delivered instantly. Perfect for urgent messages, greetings, or keeping in touch with loved ones.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Secure & Private</h3>
+                        <p>Your messages and personal information are protected with enterprise-grade security. We value your privacy.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>All PH Networks</h3>
+                        <p>Send to Globe, Smart, Sun, TNT, TM, and all other networks in the Philippines. No restrictions!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3>API for Developers</h3>
+                        <p>Integrate our SMS service into your applications. Perfect for OTP, notifications, and marketing campaigns.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💻</div>
+                        <h3>Multiple Platforms</h3>
+                        <p>Use our service on web, mobile app, or through our API. Accessible anywhere, anytime!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCw6qKed942Hyth6tREAfwSfhTp1RLZhlU",
+            authDomain: "freesmsph-62cbe.firebaseapp.com",
+            databaseURL: "https://freesmsph-62cbe-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "freesmsph-62cbe",
+            storageBucket: "freesmsph-62cbe.firebasestorage.app",
+            messagingSenderId: "719414699166",
+            appId: "1:719414699166:web:f5064fafd2abca25a9478f",
+            measurementId: "G-Q06VJKQQ7M"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const firestore = getFirestore(app);
+
+        // Global auth state
+        window.currentUser = null;
+
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            const authButtons = document.getElementById('authButtons');
+            const userInfo = document.getElementById('userInfo');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+
+            if (user) {
+                window.currentUser = user;
+                
+                // Hide auth buttons and show user info
+                authButtons.style.display = 'none';
+                userInfo.style.display = 'flex';
+
+                // Get user data from Firestore
+                try {
+                    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        welcomeMessage.textContent = `Welcome, ${userData.firstName || 'User'}!`;
+                    } else {
+                        welcomeMessage.textContent = `Welcome, ${user.email?.split('@')[0] || 'User'}!`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                    welcomeMessage.textContent = `Welcome, ${user.email?.split('@')[0] || 'User'}!`;
+                }
+
+                localStorage.setItem('userLoggedIn', 'true');
+            } else {
+                window.currentUser = null;
+                
+                // Show auth buttons and hide user info
+                authButtons.style.display = 'flex';
+                userInfo.style.display = 'none';
+                
+                localStorage.removeItem('userLoggedIn');
+            }
+        });
+
+        // Logout function
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                showToast('Logged out successfully!', 'success');
+                localStorage.removeItem('userLoggedIn');
+                localStorage.removeItem('userEmail');
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Error logging out. Please try again.', 'error');
+            }
+        };
+
+        // Send SMS function (simulated)
+        window.sendSMS = async function(phoneNumbers, message) {
+            // Simulate sending SMS
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log('SMS sent to:', phoneNumbers);
+                    console.log('Message:', message);
+                    resolve({ success: true, sent: phoneNumbers.length });
+                }, 2000);
+            });
+        };
+    </script>
+
+    <script>
+        // Global variables
+        let phoneNumbersList = [];
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Phone number validation
+        function validatePhoneNumber(number) {
+            const cleaned = number.replace(/\D/g, '');
+            const phoneRegex = /^9[0-9]{9}$/;
+            return phoneRegex.test(cleaned);
+        }
+
+        // Format phone number display
+        function formatPhoneNumber(number) {
+            const cleaned = number.replace(/\D/g, '');
+            if (cleaned.length === 10) {
+                return `+63-${cleaned.substring(0, 3)}-${cleaned.substring(3, 6)}-${cleaned.substring(6)}`;
+            }
+            return number;
+        }
+
+        // Phone number input formatting
+        function setupPhoneInput(inputId) {
+            const input = document.getElementById(inputId);
+            
+            input.addEventListener('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                
+                // Ensure it starts with 9
+                if (value.length > 0 && !value.startsWith('9')) {
+                    value = '9' + value.substring(1);
+                }
+                
+                // Limit to 10 digits (9XXXXXXXXX)
+                value = value.substring(0, 10);
+                this.value = value;
+            });
+
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                paste = paste.replace(/\D/g, '');
+                
+                // Handle different formats
+                if (paste.startsWith('639')) {
+                    paste = paste.substring(2);
+                } else if (paste.startsWith('09')) {
+                    paste = paste.substring(1);
+                } else if (paste.startsWith('63')) {
+                    paste = paste.substring(2);
+                }
+                
+                if (paste.startsWith('9')) {
+                    paste = paste.substring(0, 10);
+                    this.value = paste;
+                }
+            });
+        }
+
+        // Character counter
+        function setupCharacterCounter(textareaId, counterId) {
+            const textarea = document.getElementById(textareaId);
+            const counter = document.getElementById(counterId);
+            
+            textarea.addEventListener('input', function() {
+                const length = this.value.length;
+                counter.textContent = length;
+                
+                counter.parentElement.className = 'character-count';
+                if (length > 140) {
+                    counter.parentElement.className += ' warning';
+                }
+                if (length >= 160) {
+                    counter.parentElement.className += ' error';
+                }
+            });
+        }
+
+        // Add phone number to bulk list
+        function addPhoneNumber() {
+            const input = document.getElementById('bulkPhoneNumber');
+            const number = input.value.trim();
+            
+            if (!number) {
+                showToast('Please enter a phone number', 'warning');
+                return;
+            }
+            
+            if (!validatePhoneNumber(number)) {
+                showToast('Please enter a valid Philippine phone number (9XXXXXXXXX)', 'error');
+                return;
+            }
+            
+            const formattedNumber = formatPhoneNumber(number);
+            
+            if (phoneNumbersList.some(phone => phone.number === number)) {
+                showToast('Phone number already added', 'warning');
+                return;
+            }
+            
+            phoneNumbersList.push({
+                number: number,
+                formatted: formattedNumber
+            });
+            
+            input.value = '';
+            updatePhoneList();
+            showToast('Phone number added successfully', 'success');
+        }
+
+        // Remove phone number from list
+        function removePhoneNumber(index) {
+            phoneNumbersList.splice(index, 1);
+            updatePhoneList();
+            showToast('Phone number removed', 'success');
+        }
+
+        // Update phone numbers display
+        function updatePhoneList() {
+            const phoneList = document.getElementById('phoneList');
+            const phoneCount = document.getElementById('phoneCount');
+            const bulkSendBtn = document.getElementById('bulkSendBtn');
+            
+            phoneCount.textContent = phoneNumbersList.length;
+            
+            if (phoneNumbersList.length === 0) {
+                phoneList.innerHTML = '<p style="color: #666; text-align: center; margin: 2rem 0;">No phone numbers added yet. Add numbers above or import from file.</p>';
+                phoneList.className = 'phone-list';
+                bulkSendBtn.disabled = true;
+            } else {
+                phoneList.className = 'phone-list has-numbers';
+                phoneList.innerHTML = phoneNumbersList.map((phone, index) => `
+                    <div class="phone-item">
+                        <span>${phone.formatted}</span>
+                        <button type="button" class="remove-btn" onclick="removePhoneNumber(${index})">Remove</button>
+                    </div>
+                `).join('');
+                
+                const bulkMessage = document.getElementById('bulkMessage').value.trim();
+                bulkSendBtn.disabled = !bulkMessage;
+            }
+        }
+
+        // Import phone numbers
+        function importPhoneNumbers() {
+            document.getElementById('importFile').click();
+        }
+
+        // Handle file import
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const lines = content.split('\n');
+                let addedCount = 0;
+                let skippedCount = 0;
+                
+                lines.forEach(line => {
+                    const number = line.trim().replace(/\D/g, '');
+                    
+                    // Handle different formats
+                    let cleanedNumber = number;
+                    if (number.startsWith('639')) {
+                        cleanedNumber = number.substring(2);
+                    } else if (number.startsWith('09')) {
+                        cleanedNumber = number.substring(1);
+                    } else if (number.startsWith('63')) {
+                        cleanedNumber = number.substring(2);
+                    }
+                    
+                    if (validatePhoneNumber(cleanedNumber)) {
+                        const formattedNumber = formatPhoneNumber(cleanedNumber);
+                        
+                        if (!phoneNumbersList.some(phone => phone.number === cleanedNumber)) {
+                            phoneNumbersList.push({
+                                number: cleanedNumber,
+                                formatted: formattedNumber
+                            });
+                            addedCount++;
+                        } else {
+                            skippedCount++;
+                        }
+                    }
+                });
+                
+                updatePhoneList();
+                showToast(`Imported ${addedCount} numbers. Skipped ${skippedCount} duplicates/invalid numbers.`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        // Single SMS form submission
+        document.getElementById('singleSmsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!window.currentUser) {
+                showToast('Please log in to send SMS', 'error');
+                return;
+            }
+            
+            const phoneNumber = document.getElementById('singlePhoneNumber').value.trim();
+            const message = document.getElementById('singleMessage').value.trim();
+            
+            if (!validatePhoneNumber(phoneNumber)) {
+                showToast('Please enter a valid Philippine phone number', 'error');
+                return;
+            }
+            
+            if (!message) {
+                showToast('Please enter a message', 'error');
+                return;
+            }
+            
+            const sendBtn = document.getElementById('singleSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            try {
+                const result = await window.sendSMS([phoneNumber], message);
+                if (result.success) {
+                    showToast('SMS sent successfully!', 'success');
+                    document.getElementById('singleMessage').value = '';
+                    document.getElementById('singleCharCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error sending SMS:', error);
+                showToast('Failed to send SMS. Please try again.', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send SMS 📤';
+            }
+        });
+
+        // Bulk SMS form submission
+        document.getElementById('bulkSmsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!window.currentUser) {
+                showToast('Please log in to send SMS', 'error');
+                return;
+            }
+            
+            if (phoneNumbersList.length === 0) {
+                showToast('Please add phone numbers to send bulk SMS', 'error');
+                return;
+            }
+            
+            const message = document.getElementById('bulkMessage').value.trim();
+            if (!message) {
+                showToast('Please enter a message', 'error');
+                return;
+            }
+            
+            const sendBtn = document.getElementById('bulkSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            try {
+                const phoneNumbers = phoneNumbersList.map(phone => phone.number);
+                const result = await window.sendSMS(phoneNumbers, message);
+                
+                if (result.success) {
+                    showToast(`Bulk SMS sent to ${result.sent} numbers successfully!`, 'success');
+                    document.getElementById('bulkMessage').value = '';
+                    document.getElementById('bulkCharCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error sending bulk SMS:', error);
+                showToast('Failed to send bulk SMS. Please try again.', 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send Bulk SMS 📡';
+                updatePhoneList(); // Re-enable button based on conditions
+            }
+        });
+
+        // Bulk message validation
+        document.getElementById('bulkMessage').addEventListener('input', function() {
+            const bulkSendBtn = document.getElementById('bulkSendBtn');
+            const message = this.value.trim();
+            bulkSendBtn.disabled = !(phoneNumbersList.length > 0 && message);
+        });
+
+        // Enter key to add phone number
+        document.getElementById('bulkPhoneNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addPhoneNumber();
+            }
+        });
+
+        // Cursor animation
+        const cursor = document.querySelector('.cursor');
+        const follower = document.querySelector('.cursor-follower');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            
+            setTimeout(() => {
+                follower.style.left = e.clientX + 'px';
+                follower.style.top = e.clientY + 'px';
+            }, 50);
+        });
+
+        // Initialize components
+        document.addEventListener('DOMContentLoaded', function() {
+            setupPhoneInput('singlePhoneNumber');
+            setupPhoneInput('bulkPhoneNumber');
+            setupCharacterCounter('singleMessage', 'singleCharCount');
+            setupCharacterCounter('bulkMessage', 'bulkCharCount');
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .section-title-main').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

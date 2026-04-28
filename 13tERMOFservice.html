@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - FreeSMSPH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* User Dropdown Styles */
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .user-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .user-menu.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+            z-index: 1001;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 0.3rem;
+        }
+
+        .dropdown-header .user-fullname {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .dropdown-header .user-username {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #ff6b35;
+            padding-left: 1.5rem;
+        }
+
+        .dropdown-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee;
+            color: #c82333;
+        }
+
+        /* Mobile Sidebar */
+        .mobile-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            z-index: 1002;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 0;
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .mobile-sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-sidebar .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .mobile-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav-links li {
+            margin: 0;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-nav-links a:hover,
+        .mobile-nav-links a.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left-color: white;
+            padding-left: 2.5rem;
+        }
+
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 4rem 0 2rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            animation: slideInDown 1s ease-out 0.3s both;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .terms-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 4rem 0;
+        }
+
+        .terms-section {
+            background: white;
+            margin-bottom: 2rem;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .terms-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.15);
+        }
+
+        .terms-section h2 {
+            color: #ff6b35;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            position: relative;
+        }
+
+        .terms-section h3 {
+            color: #333;
+            margin: 2rem 0 1rem 0;
+            font-size: 1.4rem;
+        }
+
+        .terms-section p {
+            margin-bottom: 1.2rem;
+            line-height: 1.8;
+            color: #555;
+            text-align: justify;
+        }
+
+        .terms-section ul {
+            margin: 1rem 0 1rem 2rem;
+            color: #555;
+        }
+
+        .terms-section li {
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fff8f5, #fef2ed);
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .highlight-box::before {
+            content: "⚠️";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            font-size: 1.2rem;
+        }
+
+        .effective-date {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .effective-date strong {
+            color: #ff6b35;
+            font-size: 1.1rem;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .contact-info h3 {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info p {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info a {
+            color: #ff6b35;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Protection Warning Style */
+        .protection-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .protection-warning h2 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        .protection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            font-size: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .protection-message {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @media print {
+            body { display: none !important; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+
+            .container {
+                padding: 0 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .user-name {
+                max-width: 80px;
+            }
+
+            .user-dropdown {
+                right: -10px;
+                min-width: 180px;
+            }
+
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .terms-content {
+                padding: 2rem 0;
+            }
+
+            .terms-section {
+                padding: 2rem 1.5rem;
+            }
+
+            .terms-section h2 {
+                font-size: 1.6rem;
+            }
+
+            .terms-section h3 {
+                font-size: 1.3rem;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+
+            /* Responsive Footer */
+            .footer {
+                padding: 2rem 0 1rem;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .footer-section h4 {
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .footer-section {
+                font-size: 0.9rem;
+            }
+
+            .footer-section p {
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+
+            .footer-section a {
+                margin-bottom: 0.4rem;
+                font-size: 0.9rem;
+            }
+
+            .footer-bottom {
+                padding-top: 1.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .user-toggle {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                max-width: 60px;
+            }
+
+            .user-dropdown {
+                right: -20px;
+                min-width: 160px;
+            }
+
+            .dropdown-item {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .terms-section {
+                padding: 1.5rem 1rem;
+            }
+
+            .terms-section h2 {
+                font-size: 1.4rem;
+            }
+
+            .terms-section h3 {
+                font-size: 1.2rem;
+            }
+
+            .highlight-box {
+                padding: 1rem;
+                margin: 1.5rem 0;
+            }
+
+            .contact-info {
+                padding: 1.5rem;
+            }
+
+            /* Mobile Sidebar adjustments */
+            .mobile-sidebar {
+                width: 280px;
+                left: -280px;
+            }
+
+            /* Even smaller footer for small mobile */
+            .footer {
+                padding: 1.5rem 0 0.8rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 1.2rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .footer-section h4 {
+                font-size: 0.95rem;
+                margin-bottom: 0.6rem;
+            }
+
+            .footer-section {
+                font-size: 0.85rem;
+            }
+
+            .footer-section p {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            .footer-section a {
+                margin-bottom: 0.3rem;
+                font-size: 0.85rem;
+            }
+
+            .footer-bottom {
+                padding-top: 1.2rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            .auth-buttons .btn {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-toggle {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+
+            .terms-section {
+                padding: 1rem;
+            }
+
+            /* Mobile sidebar for very small screens */
+            .mobile-sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 1.5rem 0;
+            }
+
+            .mobile-sidebar-header {
+                padding: 0 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .mobile-nav-links a {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .mobile-nav-links a:hover,
+            .mobile-nav-links a.active {
+                padding-left: 2rem;
+            }
+
+            /* Extra small footer */
+            .footer {
+                padding: 1.2rem 0 0.6rem;
+            }
+
+            .footer-content {
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .footer-section h4 {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .footer-section {
+                font-size: 0.8rem;
+            }
+
+            .footer-section p {
+                font-size: 0.8rem;
+            }
+
+            .footer-section a {
+                margin-bottom: 0.25rem;
+                font-size: 0.8rem;
+            }
+
+            .footer-bottom {
+                padding-top: 1rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Protection Warning Overlay -->
+    <div class="protection-warning" id="protectionWarning">
+        <div>
+            <h2>🚫 Access Restricted</h2>
+            <p>Developer tools are disabled on this website.</p>
+            <p>Please browse normally to use this site.</p>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="2FEATURE.html">Features</a></li>
+                <li><a href="3PRICING.html">Pricing</a></li>
+                <li><a href="5ABOUT US.html">About</a></li>
+                <li><a href="6CONTACT US.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-toggle" id="userToggle">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-fullname" id="dropdownFullname">Full Name</div>
+                        <div class="user-username" id="dropdownUsername">@username</div>
+                    </div>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">📊</span>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">💳</span>
+                        <span>Transaction</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item logout" id="logoutBtn">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <button class="mobile-menu" id="mobileMenuBtn">☰</button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileOverlay"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <button class="mobile-close" id="mobileClose">✕</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="2FEATURE.html">Features</a></li>
+            <li><a href="3PRICING.html">Pricing</a></li>
+            <li><a href="5ABOUT US.html">About</a></li>
+            <li><a href="6CONTACT US.html">Contact</a></li>
+        </ul>
+    </div>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Terms of Service</h1>
+                <p>Please read these terms carefully before using our services</p>
+            </div>
+        </section>
+
+        <div class="container">
+            <div class="terms-content">
+                <div class="effective-date">
+                    <strong>Effective Date: January 1, 2025</strong>
+                    <p>Last Updated: January 1, 2025</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>1. Acceptance of Terms</h2>
+                    <p>By accessing and using FreeSMSPH ("we", "our", "us"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+                    
+                    <div class="highlight-box">
+                        <p><strong>Important:</strong> These terms constitute a legally binding agreement between you and FreeSMSPH. Please read them carefully before using our services.</p>
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <h2>2. Service Description</h2>
+                    <p>FreeSMSPH provides SMS messaging services to users in the Philippines and abroad. Our services include:</p>
+                    <ul>
+                        <li>Free SMS messaging to Philippine mobile networks</li>
+                        <li>Premium messaging services with additional features</li>
+                        <li>Bulk SMS solutions for businesses</li>
+                        <li>API integration services</li>
+                        <li>Customer support and technical assistance</li>
+                    </ul>
+                    <p>We reserve the right to modify, suspend, or discontinue any part of our service at any time without prior notice.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>3. User Eligibility and Account Registration</h2>
+                    <h3>3.1 Age Requirement</h3>
+                    <p>You must be at least 18 years old to use our services. By using FreeSMSPH, you represent and warrant that you are 18 years of age or older.</p>
+                    
+                    <h3>3.2 Account Information</h3>
+                    <p>When creating an account, you must provide accurate, complete, and current information. You are responsible for:</p>
+                    <ul>
+                        <li>Maintaining the confidentiality of your account credentials</li>
+                        <li>All activities that occur under your account</li>
+                        <li>Notifying us immediately of any unauthorized use of your account</li>
+                        <li>Keeping your contact information up to date</li>
+                    </ul>
+                </div>
+
+                <div class="terms-section">
+                    <h2>4. Acceptable Use Policy</h2>
+                    <p>You agree not to use our services for any unlawful purpose or in any way that could harm FreeSMSPH or other users. Prohibited activities include:</p>
+                    <ul>
+                        <li>Sending spam, unsolicited messages, or bulk commercial messages</li>
+                        <li>Harassing, threatening, or abusing other users</li>
+                        <li>Transmitting viruses, malware, or other harmful code</li>
+                        <li>Violating any applicable local, national, or international laws</li>
+                        <li>Impersonating another person or entity</li>
+                        <li>Collecting or harvesting user information without consent</li>
+                        <li>Interfering with or disrupting our services or servers</li>
+                        <li>Using automated systems to access our services without permission</li>
+                    </ul>
+                    
+                    <div class="highlight-box">
+                        <p><strong>Violation Warning:</strong> Violation of these terms may result in immediate account suspension or termination without refund.</p>
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <h2>5. Payment and Billing</h2>
+                    <h3>5.1 Free Services</h3>
+                    <p>We offer limited free SMS services to new users. Free service quotas and limitations may change without notice.</p>
+                    
+                    <h3>5.2 Paid Services</h3>
+                    <p>For premium features and additional SMS credits:</p>
+                    <ul>
+                        <li>All fees are quoted in Philippine Peso (PHP) unless otherwise stated</li>
+                        <li>Payment is due immediately upon purchase</li>
+                        <li>We accept various payment methods as displayed during checkout</li>
+                        <li>All sales are final unless otherwise stated in our refund policy</li>
+                        <li>Prices may change at any time with reasonable notice</li>
+                    </ul>
+                    
+                    <h3>5.3 Refunds</h3>
+                    <p>Refunds may be considered on a case-by-case basis for technical issues preventing service delivery. SMS credits that have been successfully delivered are non-refundable.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>6. Privacy and Data Protection</h2>
+                    <p>Your privacy is important to us. We collect, use, and protect your information in accordance with our Privacy Policy, which is incorporated into these terms by reference.</p>
+                    
+                    <h3>6.1 Data Collection</h3>
+                    <p>We may collect personal information including but not limited to:</p>
+                    <ul>
+                        <li>Contact information (name, email, phone number)</li>
+                        <li>Usage data and service interactions</li>
+                        <li>Device and browser information</li>
+                        <li>Payment information (processed securely by third-party providers)</li>
+                    </ul>
+                    
+                    <h3>6.2 Data Security</h3>
+                    <p>We implement industry-standard security measures to protect your data. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>7. Intellectual Property</h2>
+                    <p>All content, features, and functionality of FreeSMSPH, including but not limited to text, graphics, logos, icons, images, audio clips, and software, are the exclusive property of FreeSMSPH and are protected by international copyright, trademark, and other intellectual property laws.</p>
+                    
+                    <h3>7.1 User Content</h3>
+                    <p>You retain ownership of content you create and send through our services. By using our services, you grant us a limited license to process and deliver your messages as necessary to provide our services.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>8. Service Availability and Limitations</h2>
+                    <h3>8.1 Service Uptime</h3>
+                    <p>While we strive to maintain high service availability, we do not guarantee uninterrupted service. Maintenance, upgrades, and technical issues may occasionally affect service availability.</p>
+                    
+                    <h3>8.2 Message Delivery</h3>
+                    <p>We make commercially reasonable efforts to deliver messages promptly, but we cannot guarantee:</p>
+                    <ul>
+                        <li>Delivery speed or timing</li>
+                        <li>Successful delivery to all recipients</li>
+                        <li>Message content integrity across different networks</li>
+                        <li>Service availability during network carrier issues</li>
+                    </ul>
+                </div>
+
+                <div class="terms-section">
+                    <h2>9. Limitation of Liability</h2>
+                    <p>To the fullest extent permitted by law, FreeSMSPH shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of our services.</p>
+                    
+                    <p>Our total liability to you for any claims arising from these terms or your use of our services shall not exceed the amount you have paid to us in the twelve months preceding the claim.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>10. Indemnification</h2>
+                    <p>You agree to defend, indemnify, and hold harmless FreeSMSPH and its officers, directors, employees, agents, and affiliates from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees arising out of or relating to your violation of these terms or your use of our services.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>11. Termination</h2>
+                    <p>We may terminate or suspend your account and access to our services immediately, without prior notice or liability, for any reason, including without limitation if you breach these terms.</p>
+                    
+                    <p>Upon termination:</p>
+                    <ul>
+                        <li>Your right to use our services will cease immediately</li>
+                        <li>Unused credits may be forfeited</li>
+                        <li>We may delete your account and data after a reasonable period</li>
+                        <li>Provisions that should survive termination will remain in effect</li>
+                    </ul>
+                </div>
+
+                <div class="terms-section">
+                    <h2>12. Governing Law and Dispute Resolution</h2>
+                    <p>These terms shall be governed by and construed in accordance with the laws of the Republic of the Philippines. Any disputes arising from these terms or your use of our services shall be subject to the exclusive jurisdiction of the courts of the Philippines.</p>
+                    
+                    <h3>12.1 Alternative Dispute Resolution</h3>
+                    <p>Before filing any formal legal action, parties agree to attempt to resolve disputes through good faith negotiation for a period of 30 days.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>13. Changes to Terms</h2>
+                    <p>We reserve the right to modify these terms at any time. We will notify users of any material changes by:</p>
+                    <ul>
+                        <li>Posting the updated terms on our website</li>
+                        <li>Sending email notifications to registered users</li>
+                        <li>Displaying notices within our service interface</li>
+                    </ul>
+                    
+                    <p>Your continued use of our services after any such changes constitutes your acceptance of the new terms.</p>
+                </div>
+
+                <div class="terms-section">
+                    <h2>14. Severability and Entire Agreement</h2>
+                    <p>If any provision of these terms is found to be unenforceable or invalid, that provision will be limited or eliminated to the minimum extent necessary so that these terms will otherwise remain in full force and effect.</p>
+                    
+                    <p>These terms constitute the entire agreement between you and FreeSMSPH regarding the use of our services and supersede all prior or contemporaneous understandings and agreements.</p>
+                </div>
+
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    <p>If you have any questions about these Terms of Service, please contact us at:</p>
+                    <p>
+                        <strong>Email:</strong> <a href="mailto:legal@freesmsph.com">freesmsph232026@gmail.com</a><br>
+                        <strong>Phone:</strong> <a href="tel:+63-976-216-1717">+63-976-216-1717</a><br>
+                        <strong>Address:</strong> FreeSMSPH Legal Department<br>
+                        Metro Manila, Philippines
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FreeSMSPH</h4>
+                    <p>The Philippines' most trusted SMS service.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="2FEATURE.html">Features</a>
+                    <a href="3PRICING.html">Pricing</a>
+                    <a href="5ABOUT US.html">About Us</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="6CONTACT US.html">Contact Us</a>
+                    <a href="FAQ.html">FAQ</a>
+                    <a href="12HelpCenter.html">Help Center</a>
+                    <a href="13tERMOFservice.html">Terms of Service</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <a href="https://www.facebook.com/TheMoonProject0121/">Facebook</a>
+                    <a href="https://www.threads.com/@themoon_project0121">Twitter</a>
+                    <a href="https://www.instagram.com/themoonproject2025">Instagram</a>
+                    <a href="https://www.tiktok.com/@themoonproject21">Tiktok</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FreeSMSPH. All rights reserved. | Made with ❤️ in the Philippines</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Protection Overlay -->
+    <div class="protection-overlay" id="protectionOverlay">
+        <div class="protection-message">
+            <h2>⚠️ Access Denied</h2>
+            <p>Developer tools are not allowed on this website.</p>
+            <p>Please close the developer tools to continue.</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // PROTECTION CODE - DISABLE DEV TOOLS
+        // ============================================
+        (function() {
+            'use strict';
+
+            let devtools = {opened: false, orientation: null};
+            
+            // Disable right click context menu
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Disable F12 and other developer shortcut keys
+            document.addEventListener('keydown', function(e) {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+I (Chrome DevTools)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+C (Inspect Element)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+J (Console)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+S (Save Page)
+                if (e.ctrlKey && e.keyCode === 83) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+A (Select All) - Sometimes used to copy source
+                if (e.ctrlKey && e.keyCode === 65) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
+                // Ctrl+C (Copy)
+                if (e.ctrlKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Disable other common shortcuts
+                if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 85 || e.keyCode === 117)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+            });
+
+            // Detect DevTools by console.log timing method
+            let element = new Image();
+            let devtoolsChecker;
+            
+            // Check if DevTools is open by monitoring console
+            function detectDevTools() {
+                let before = new Date();
+                debugger;
+                let after = new Date();
+                
+                if (after - before > 100) {
+                    showProtectionWarning();
+                    // Redirect or reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }
+
+            // Run detection every 500ms
+            setInterval(detectDevTools, 500);
+
+            // Monitor window resize (DevTools opening/closing changes window size)
+            let windowHeight = window.innerHeight;
+            let windowWidth = window.innerWidth;
+            
+            window.addEventListener('resize', function() {
+                if (window.innerHeight < windowHeight * 0.7 || window.innerWidth < windowWidth * 0.7) {
+                    showProtectionWarning();
+                }
+            });
+
+            // Disable text selection
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable drag and drop
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Clear console repeatedly
+            setInterval(function() {
+                console.clear();
+                console.log('%c🚫 STOP!', 'color: red; font-size: 50px; font-weight: bold;');
+                console.log('%cThis is a browser feature intended for developers. Code protection is active.', 'color: red; font-size: 16px;');
+            }, 1000);
+
+            // Monitor for DevTools
+            function checkDevTools() {
+                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                    showProtectionWarning();
+                }
+            }
+            
+            setInterval(checkDevTools, 500);
+
+            function showProtectionWarning() {
+                const warning = document.getElementById('protectionWarning');
+                if (warning) {
+                    warning.style.display = 'flex';
+                    setTimeout(() => {
+                        warning.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            // Override console functions
+            window.console = {
+                log: function() {},
+                error: function() {},
+                warn: function() {},
+                info: function() {},
+                debug: function() {},
+                trace: function() {},
+                dir: function() {},
+                group: function() {},
+                groupCollapsed: function() {},
+                groupEnd: function() {},
+                time: function() {},
+                timeEnd: function() {},
+                profile: function() {},
+                profileEnd: function() {},
+                dirxml: function() {},
+                assert: function() {},
+                count: function() {},
+                markTimeline: function() {},
+                timeline: function() {},
+                timelineEnd: function() {},
+                timeStamp: function() {},
+                table: function() {},
+                exception: function() {},
+                clear: function() {}
+            };
+
+            // Disable printing
+            window.addEventListener('beforeprint', function(e) {
+                e.preventDefault();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Monitor for suspicious activity
+            let clickCount = 0;
+            document.addEventListener('click', function(e) {
+                clickCount++;
+                if (clickCount > 50) { // Suspicious clicking patterns
+                    showProtectionWarning();
+                }
+            });
+
+            // Reset click count every 10 seconds
+            setInterval(() => { clickCount = 0; }, 10000);
+
+            // Obfuscate the source when possible
+            document.addEventListener('DOMContentLoaded', function() {
+                // Remove comments from DOM
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_COMMENT,
+                    null,
+                    false
+                );
+                
+                const commentsToRemove = [];
+                let node;
+                
+                while (node = walker.nextNode()) {
+                    commentsToRemove.push(node);
+                }
+                
+                commentsToRemove.forEach(comment => {
+                    comment.remove();
+                });
+            });
+        })();
+
+        // ============================================
+        // ORIGINAL APPLICATION CODE
+        // ============================================
+
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const mobileClose = document.getElementById('mobileClose');
+
+        function openMobileSidebar() {
+            mobileSidebar.classList.add('open');
+            mobileOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            mobileSidebar.classList.remove('open');
+            mobileOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', openMobileSidebar);
+        mobileClose.addEventListener('click', closeMobileSidebar);
+        mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+        // Close sidebar on link click
+        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
+        });
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthState();
+        });
+
+        // Toast notification function
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Update authentication state
+        function updateAuthState() {
+            const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            const userUsername = localStorage.getItem('userUsername') || '';
+            const userFirstName = localStorage.getItem('userFirstName') || '';
+            
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userAvatarElement = document.getElementById('userAvatar');
+            const dropdownFullname = document.getElementById('dropdownFullname');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+
+            if (isLoggedIn) {
+                // Hide auth buttons and show user menu
+                authButtons.style.display = 'none';
+                userMenu.classList.add('active');
+                
+                // Update user info display
+                userNameDisplay.textContent = userName;
+                dropdownFullname.textContent = userName;
+                dropdownUsername.textContent = '@' + userUsername;
+                
+                // Create avatar from first letter of name
+                const avatarLetter = userFirstName.charAt(0).toUpperCase() || userName.charAt(0).toUpperCase() || 'U';
+                userAvatarElement.textContent = avatarLetter;
+            } else {
+                // Show auth buttons and hide user menu
+                authButtons.style.display = 'flex';
+                userMenu.classList.remove('active');
+            }
+        }
+
+        // User dropdown toggle
+        document.getElementById('userToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userToggle = document.getElementById('userToggle');
+            
+            if (!userMenu.contains(e.target) && !userToggle.contains(e.target)) {
+                userMenu.classList.remove('open');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Clear all user data from localStorage
+            localStorage.removeItem('userLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userUsername');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            
+            // Close dropdown
+            document.getElementById('userMenu').classList.remove('open');
+            
+            // Show logout toast
+            showToast('Successfully logged out!');
+            
+            // Update UI after a short delay
+            setTimeout(() => {
+                updateAuthState();
+            }, 500);
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.terms-section').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

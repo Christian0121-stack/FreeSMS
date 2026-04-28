@@ -1,0 +1,3570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeSMSPH - Free SMS Service Philippines</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(255, 107, 53, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: clamp(1rem, 2vw, 2rem);
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: clamp(0.5rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: clamp(0.8rem, 1.2vw, 1rem);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* User Dropdown Styles */
+        .user-menu {
+            position: relative;
+            display: none;
+        }
+
+        .user-menu.active {
+            display: block;
+        }
+
+        .user-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .user-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .user-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .user-menu.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            border: 1px solid #e9ecef;
+            z-index: 1001;
+        }
+
+        .user-menu.open .user-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 0.3rem;
+        }
+
+        .dropdown-header .user-fullname {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .dropdown-header .user-username {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            color: #ff6b35;
+            padding-left: 1.5rem;
+        }
+
+        .dropdown-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.logout {
+            color: #dc3545;
+            border-top: 1px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee;
+            color: #c82333;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ffba08);
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) translateY(-50%) rotate(360deg); }
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(2rem, 5vw, 4rem);
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 1rem;
+            animation: slideInLeft 1s ease-out;
+            line-height: 1.2;
+        }
+
+        .hero-text p {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: slideInLeft 1s ease-out 0.3s both;
+            line-height: 1.6;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: slideInLeft 1s ease-out 0.6s both;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: clamp(1rem, 2vw, 2rem);
+            animation: slideInLeft 1s ease-out 0.9s both;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat span:last-child {
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: slideInRight 1s ease-out 0.5s both;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .phone-mockup {
+            width: clamp(200px, 30vw, 300px);
+            height: clamp(320px, 40vw, 500px);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: clamp(20px, 3vw, 30px) clamp(15px, 2vw, 20px);
+            backdrop-filter: blur(10px);
+            animation: float-phone 3s ease-in-out infinite;
+        }
+
+        @keyframes float-phone {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: clamp(15px, 2vw, 20px);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .phone-screen h4 {
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+        }
+
+        .phone-screen p {
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .phone-screen button {
+            font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+        }
+
+        .features {
+            padding: clamp(3rem, 8vw, 5rem) 0;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 3vw, 2rem);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #ff6b35;
+            margin-bottom: clamp(2rem, 5vw, 3rem);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .feature-card {
+            background: white;
+            padding: clamp(1.5rem, 3vw, 2rem);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.2);
+        }
+
+        .feature-icon {
+            width: clamp(50px, 8vw, 60px);
+            height: clamp(50px, 8vw, 60px);
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: clamp(1.2rem, 2vw, 1.5rem);
+            color: white;
+        }
+
+        .feature-card h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+        }
+
+        .feature-card p {
+            font-size: clamp(0.9rem, 1.5vw, 1rem);
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: clamp(2rem, 5vw, 3rem) 0 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: clamp(1.5rem, 3vw, 2rem);
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+        }
+
+        .footer-section p {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            line-height: 1.6;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .footer-section a:hover {
+            color: #ff6b35;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #555;
+            color: #ccc;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            z-index: 10000;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        /* SMS Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #ff6b35;
+        }
+
+        .sms-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .sms-type-btn {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .sms-type-btn:hover {
+            border-color: #ff6b35;
+            background: #fff5f0;
+        }
+
+        .sms-type-btn.active {
+            border-color: #ff6b35;
+            background: #ff6b35;
+            color: white;
+        }
+
+        .sms-type-btn .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .phone-input-container {
+            position: relative;
+        }
+
+        .phone-prefix {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-weight: 600;
+        }
+
+        .phone-input {
+            padding-left: 4rem;
+        }
+
+        .sms-form-container {
+            display: none;
+        }
+
+        .sms-form-container.active {
+            display: block;
+        }
+
+        .bulk-numbers-container {
+            display: none;
+        }
+
+        .bulk-numbers-container.active {
+            display: block;
+        }
+
+        .number-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .number-item .form-input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .remove-number-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .remove-number-btn:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        .add-number-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .add-number-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* Excel Upload Styles */
+        .excel-upload-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .excel-upload-section.active {
+            border-color: #ff6b35;
+            background: linear-gradient(135deg, #fff5f0, #ffeee6);
+        }
+
+        .excel-instruction {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .excel-instruction-icon {
+            font-size: 2rem;
+            color: #ff6b35;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .excel-instruction-text {
+            flex: 1;
+        }
+
+        .excel-instruction-title {
+            font-weight: 600;
+            color: #ff6b35;
+            margin-bottom: 0.3rem;
+        }
+
+        .excel-instruction-desc {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .excel-download-link {
+            color: #ff6b35;
+            text-decoration: underline;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .excel-download-link:hover {
+            color: #f7931e;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .excel-upload-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .excel-upload-input {
+            display: none;
+        }
+
+        .excel-upload-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .excel-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .excel-upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .excel-file-info {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            color: #155724;
+            font-size: 0.9rem;
+        }
+
+        .excel-file-info.show {
+            display: flex;
+        }
+
+        .excel-clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .excel-clear-btn:hover {
+            background: #c82333;
+        }
+
+        .excel-error {
+            display: none;
+            padding: 1rem;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            color: #721c24;
+            margin-top: 1rem;
+        }
+
+        .excel-error.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .uploaded-numbers-section {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .uploaded-numbers-section.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .uploaded-numbers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .uploaded-numbers-title {
+            font-weight: 600;
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .uploaded-numbers-count {
+            background: #ff6b35;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .uploaded-numbers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .uploaded-number-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background 0.2s ease;
+        }
+
+        .uploaded-number-item:hover {
+            background: #f8f9fa;
+        }
+
+        .uploaded-number-item:last-child {
+            border-bottom: none;
+        }
+
+        .uploaded-number-text {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .uploaded-number-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .uploaded-number-remove:hover {
+            background: #c82333;
+            transform: scale(1.1);
+        }
+
+        /* Promo Code Styles */
+        .promo-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .promo-section.expanded {
+            border-color: #ff6b35;
+            background: linear-gradient(135deg, #fff5f0, #ffeee6);
+        }
+
+        .promo-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .promo-toggle:hover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .promo-toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .promo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            animation: pulse-promo 2s infinite;
+        }
+
+        @keyframes pulse-promo {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+        }
+
+        .promo-text {
+            flex: 1;
+        }
+
+        .promo-title {
+            font-weight: 600;
+            color: #ff6b35;
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .promo-subtitle {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .promo-arrow {
+            font-size: 1.2rem;
+            color: #ff6b35;
+            transition: transform 0.3s ease;
+        }
+
+        .promo-section.expanded .promo-arrow {
+            transform: rotate(180deg);
+        }
+
+        .promo-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .promo-section.expanded .promo-content {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 1rem;
+        }
+
+        .promo-input-container {
+            position: relative;
+        }
+
+        .promo-input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .promo-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .promo-input.valid {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .promo-input.invalid {
+            border-color: #dc3545;
+            background: #fff8f8;
+        }
+
+        .promo-prefix {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff6b35;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .promo-status {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .promo-status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .promo-status.valid {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .promo-status.invalid {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .promo-benefits {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .promo-benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .promo-benefit-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .promo-benefit-icon {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .captcha-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .captcha-code {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff6b35;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            letter-spacing: 3px;
+            font-family: monospace;
+        }
+
+        .refresh-captcha {
+            background: none;
+            border: none;
+            color: #ff6b35;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        .send-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .send-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Progress indicator for bulk SMS */
+        .bulk-progress {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .bulk-progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 15000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .confirmation-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .confirmation-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.8);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .confirmation-modal-overlay.active .confirmation-modal {
+            transform: scale(1);
+        }
+
+        .confirmation-icon {
+            font-size: 4rem;
+            color: #ff6b35;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .confirmation-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-message {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .confirmation-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .confirmation-btn-cancel {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .confirmation-btn-cancel:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .confirmation-btn-confirm {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .confirmation-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Protection Warning Style */
+        .protection-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .protection-warning h2 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+        }
+
+        /* Tablet Styles */
+        @media (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+            
+            .hero-content {
+                gap: 3rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        /* Small Tablet / Large Mobile */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .auth-buttons {
+                gap: 0.5rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .user-name {
+                max-width: 80px;
+            }
+
+            .user-dropdown {
+                right: -10px;
+                min-width: 180px;
+            }
+
+            .hero {
+                min-height: auto;
+                padding: 3rem 0;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .hero-cta {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+
+            .modal {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .sms-type-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .confirmation-modal {
+                padding: 2rem;
+                max-width: 380px;
+            }
+
+            .confirmation-buttons {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .confirmation-btn {
+                width: 100%;
+            }
+
+            .excel-upload-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .excel-upload-btn {
+                justify-content: center;
+            }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .auth-buttons .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+                min-width: 70px;
+            }
+
+            .user-toggle {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                max-width: 60px;
+            }
+
+            .user-dropdown {
+                right: -20px;
+                min-width: 160px;
+            }
+
+            .dropdown-item {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.8rem;
+            }
+
+            .hero-cta .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .phone-mockup {
+                width: clamp(180px, 50vw, 220px);
+                height: clamp(280px, 60vw, 350px);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .modal {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .confirmation-modal {
+                padding: 1.5rem;
+                max-width: 340px;
+            }
+
+            .confirmation-icon {
+                font-size: 3rem;
+            }
+
+            .confirmation-title {
+                font-size: 1.3rem;
+            }
+
+            .excel-instruction {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .uploaded-numbers-list {
+                max-height: 150px;
+            }
+        }
+
+        /* Extra Small Mobile */
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            .auth-buttons .btn {
+                font-size: 0.6rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .user-toggle {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+            }
+            
+            .hero {
+                padding: 2rem 0;
+            }
+            
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .confirmation-modal {
+                padding: 1.2rem;
+                max-width: 300px;
+            }
+        }
+    </style>
+    <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+<body>
+    <!-- Protection Warning Overlay -->
+    <div class="protection-warning" id="protectionWarning">
+        <div>
+            <h2>🚫 Access Restricted</h2>
+            <p>Developer tools are disabled on this website.</p>
+            <p>Please browse normally to use this site.</p>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">FreeSMSPH</a>
+            <ul class="nav-links">
+                <li><a href="index.html"  class="active">Home</a></li>
+                <li><a href="2FEATURE.html">Features</a></li>
+                <li><a href="3PRICING.html">Pricing</a></li>
+                <li><a href="5ABOUT US.html">About</a></li>
+                <li><a href="6CONTACT US.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-secondary">Sign In</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <div class="user-menu" id="userMenu">
+                <div class="user-toggle" id="userToggle">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span class="user-name" id="userNameDisplay">User</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-fullname" id="dropdownFullname">Full Name</div>
+                        <div class="user-username" id="dropdownUsername">@username</div>
+                    </div>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">📊</span>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">💳</span>
+                        <span>Transaction</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <span class="icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="dropdown-item logout" id="logoutBtn">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            <button class="mobile-menu">☰</button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Send FREE SMS sa Pilipinas</h1>
+                    <p>Walang bayad, walang hassle! Send unlimited SMS messages to any network in the Philippines. Fast, reliable, at laging free!</p>
+                    <div class="hero-cta" id="heroCTA">
+                        <button class="btn btn-primary" id="startSendingSMS">Start Sending FREE SMS</button>
+                        <a href="features.html" class="btn btn-secondary">Learn More</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">1M+</span>
+                            <span>Messages Sent</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">50K+</span>
+                            <span>Happy Users</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">100%</span>
+                            <span>Free Forever</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <h4 style="color: #ff6b35;">📱 FreeSMSPH</h4>
+                            <p style="margin: 1rem 0;">To: 09XX XXX XXXX</p>
+                            <p style="background: #f0f0f0; padding: 1rem; border-radius: 10px; margin: 1rem 0;">Kumusta ka na? Miss na kita! 💕</p>
+                            <button style="background: #ff6b35; color: white; border: none; padding: 0.8rem 2rem; border-radius: 20px; width: 100%;" onclick="openSMSModal()">Send FREE SMS ✈️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Bakit FreeSMSPH?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>Completely FREE</h3>
+                        <p>Walang hidden charges, walang registration fees. Send unlimited SMS messages without paying a single peso!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Lightning Fast</h3>
+                        <p>Your messages are delivered instantly. Perfect for urgent messages, greetings, or keeping in touch with loved ones.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Secure & Private</h3>
+                        <p>Your messages and personal information are protected with enterprise-grade security. We value your privacy.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>All PH Networks</h3>
+                        <p>Send to Globe, Smart, Sun, TNT, TM, and all other networks in the Philippines. No restrictions!</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3>API for Developers</h3>
+                        <p>Integrate our SMS service into your applications. Perfect for OTP, notifications, and marketing campaigns.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💻</div>
+                        <h3>Multiple Platforms</h3>
+                        <p>Use our service on web, mobile app, or through our API. Accessible anywhere, anytime!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SMS Modal -->
+    <div class="modal-overlay" id="smsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Send SMS</h2>
+                <button class="close-btn" onclick="attemptCloseSMSModal()">&times;</button>
+            </div>
+
+            <div class="sms-type-selector">
+                <button class="sms-type-btn active" id="singleSMSBtn" onclick="selectSMSType('single')">
+                    <span class="icon">📱</span>
+                    Single SMS
+                </button>
+                <button class="sms-type-btn" id="bulkSMSBtn" onclick="selectSMSType('bulk')">
+                    <span class="icon">📢</span>
+                    Bulk SMS
+                </button>
+            </div>
+
+            <form id="smsForm">
+                <!-- Single SMS Form -->
+                <div id="singleSMSForm" class="sms-form-container active">
+                    <!-- Promo Code Section (Only for Single SMS) -->
+                    <div class="promo-section" id="promoSection">
+                        <div class="promo-toggle" onclick="togglePromoSection()">
+                            <div class="promo-toggle-left">
+                                <div class="promo-icon">🎁</div>
+                                <div class="promo-text">
+                                    <div class="promo-title">Have a Promo Code?</div>
+                                    <div class="promo-subtitle">Get special benefits and discounts</div>
+                                </div>
+                            </div>
+                            <div class="promo-arrow">▼</div>
+                        </div>
+                        <div class="promo-content">
+                            <div class="promo-input-container">
+                                <span class="promo-prefix">🎫</span>
+                                <input type="text" class="promo-input" id="promoCodeInput" placeholder="ENTER CODE" maxlength="20">
+                            </div>
+                            <div class="promo-status" id="promoStatus"></div>
+                            <div class="promo-benefits" id="promoBenefits" style="display: none;">
+                                <div class="promo-benefit-item">
+                                    <span class="promo-benefit-icon">✅</span>
+                                    <span>Priority message delivery</span>
+                                </div>
+                                <div class="promo-benefit-item">
+                                    <span class="promo-benefit-icon">✅</span>
+                                    <span>Extended character limit (300 chars)</span>
+                                </div>
+                                <div class="promo-benefit-item">
+                                    <span class="promo-benefit-icon">✅</span>
+                                    <span>Delivery confirmation receipt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <div class="phone-input-container">
+                            <span class="phone-prefix">+63</span>
+                            <input type="tel" class="form-input phone-input" id="singlePhoneNumber" placeholder="9XXXXXXXXX" maxlength="10" pattern="[0-9]{10}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk SMS Form -->
+                <div id="bulkSMSForm" class="sms-form-container bulk-numbers-container">
+                    <!-- Excel Upload Section -->
+                    <div class="excel-upload-section" id="excelUploadSection">
+                        <div class="excel-instruction">
+                            <div class="excel-instruction-icon">📊</div>
+                            <div class="excel-instruction-text">
+                                <div class="excel-instruction-title">Bulk Upload via Excel</div>
+                                <div class="excel-instruction-desc">
+                                    You can also upload the list of your numbers to be sent. 
+                                    <span class="excel-download-link" onclick="downloadExcelTemplate()">Click here to download the Excel file</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="excel-upload-controls">
+                            <input type="file" id="excelFileInput" class="excel-upload-input" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
+                            <button type="button" class="excel-upload-btn" onclick="document.getElementById('excelFileInput').click()">
+                                <span>📁</span>
+                                Upload Excel File
+                            </button>
+                            <div class="excel-file-info" id="excelFileInfo">
+                                <span>📄</span>
+                                <span id="excelFileName">No file selected</span>
+                                <button type="button" class="excel-clear-btn" onclick="clearExcelFile()">×</button>
+                            </div>
+                        </div>
+                        
+                        <div class="excel-error" id="excelError"></div>
+                        
+                        <div class="uploaded-numbers-section" id="uploadedNumbersSection">
+                            <div class="uploaded-numbers-header">
+                                <div class="uploaded-numbers-title">
+                                    📋 Uploaded Numbers
+                                    <span class="uploaded-numbers-count" id="uploadedNumbersCount">0</span>
+                                </div>
+                                <button type="button" class="excel-clear-btn" onclick="clearUploadedNumbers()">Clear All</button>
+                            </div>
+                            <div class="uploaded-numbers-list" id="uploadedNumbersList"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Numbers (Manual Entry)</label>
+                        <div id="phoneNumbersList">
+                            <div class="number-item">
+                                <div class="phone-input-container" style="flex: 1;">
+                                    <span class="phone-prefix">+63</span>
+                                    <input type="tel" class="form-input phone-input" placeholder="9XXXXXXXXX" maxlength="10" pattern="[0-9]{10}">
+                                </div>
+                                <button type="button" class="remove-number-btn" onclick="removePhoneNumber(this)" style="display: none;">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="add-number-btn" onclick="addPhoneNumber()">+ Add Another Number</button>
+                    </div>
+                </div>
+
+                <!-- Message Field (Common for both) -->
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-input form-textarea" id="messageText" placeholder="Type your message here..." maxlength="200"></textarea>
+                    <small style="color: #666; font-size: 0.8rem;">
+                        <span id="charCount">0</span>/<span id="maxChars">200</span> characters
+                        <span id="promoCharInfo" style="display: none; color: #ff6b35; font-weight: 600;"> (Extended to 300 with promo!)</span>
+                    </small>
+                </div>
+
+                <!-- Captcha -->
+                <div class="form-group">
+                    <label class="form-label">Verification</label>
+                    <div class="captcha-container">
+                        <div class="captcha-code" id="captchaCode">ABCD5</div>
+                        <br>
+                        <button type="button" class="refresh-captcha" onclick="refreshCaptcha()">🔄 Refresh Code</button>
+                    </div>
+                    <input type="text" class="form-input" id="captchaInput" placeholder="Enter the code above" maxlength="5">
+                </div>
+
+                <!-- Bulk Progress Indicator -->
+                <div class="bulk-progress" id="bulkProgress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Sending SMS 1 of 5...</div>
+                </div>
+
+                <button type="submit" class="send-btn" id="sendBtn">
+                    <span id="sendBtnText">Send SMS ✈️</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal-overlay" id="confirmationModal">
+        <div class="confirmation-modal">
+            <div class="confirmation-icon">⚠️</div>
+            <h3 class="confirmation-title">SMS Sending in Progress</h3>
+            <p class="confirmation-message">SMS sending is currently in progress. Are you sure you want to close and cancel the operation?</p>
+            <div class="confirmation-buttons">
+                <button class="confirmation-btn confirmation-btn-cancel" onclick="cancelCloseModal()">
+                    Continue Sending
+                </button>
+                <button class="confirmation-btn confirmation-btn-confirm" onclick="confirmCloseModal()">
+                    Stop & Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>FreeSMSPH</h4>
+                    <p>The Philippines' most trusted free SMS service. Send messages to your loved ones without any cost!</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="2FEATURE.html">Features</a>
+                    <a href="3PRICING.html">Pricing</a>
+                    <a href="5ABOUT US.html">About Us</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="6CONTACT US.html">Contact Us</a>
+                    <a href="about.html">FAQ</a>
+                    <a href="#">Help Center</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <a href="https://www.facebook.com/TheMoonProject0121/">Facebook</a>
+                    <a href="https://www.threads.com/@themoon_project0121">Twitter</a>
+                    <a href="https://www.instagram.com/themoonproject2025">Instagram</a>
+                    <a href="https://www.tiktok.com/@themoonproject21">Tiktok</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FreeSMSPH. All rights reserved. | Made with ❤️ in the Philippines</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // ============================================
+        // PROTECTION CODE - DISABLE DEV TOOLS
+        // ============================================
+        (function() {
+            'use strict';
+
+            let devtools = {opened: false, orientation: null};
+            
+            // Disable right click context menu
+       /*     document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showProtectionWarning();
+                return false;
+            });*/
+
+            // Disable F12 and other developer shortcut keys
+  /*          document.addEventListener('keydown', function(e) {
+                // F12
+                if (e.keyCode === 123) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+I (Chrome DevTools)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+C (Inspect Element)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+Shift+J (Console)
+                if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+U (View Source)
+                if (e.ctrlKey && e.keyCode === 85) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+S (Save Page)
+                if (e.ctrlKey && e.keyCode === 83) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+                
+                // Ctrl+A (Select All) - Sometimes used to copy source
+                if (e.ctrlKey && e.keyCode === 65) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
+                // Ctrl+C (Copy)
+                if (e.ctrlKey && e.keyCode === 67) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Disable other common shortcuts
+                if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 85 || e.keyCode === 117)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showProtectionWarning();
+                    return false;
+                }
+            });*/
+
+            // Detect DevTools by console.log timing method
+            let element = new Image();
+            let devtoolsChecker;
+            
+            // Check if DevTools is open by monitoring console
+       /*     function detectDevTools() {
+                let before = new Date();
+                debugger;
+                let after = new Date();
+                
+                if (after - before > 100) {
+                    showProtectionWarning();
+                    // Redirect or reload page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }*/
+
+            // Run detection every 500ms
+        /*    setInterval(detectDevTools, 500);*/
+
+            // Monitor window resize (DevTools opening/closing changes window size)
+            let windowHeight = window.innerHeight;
+            let windowWidth = window.innerWidth;
+            
+            window.addEventListener('resize', function() {
+                if (window.innerHeight < windowHeight * 0.7 || window.innerWidth < windowWidth * 0.7) {
+                    showProtectionWarning();
+                }
+            });
+
+            // Disable text selection
+            document.addEventListener('selectstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Disable drag and drop
+            document.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // Clear console repeatedly
+            setInterval(function() {
+                console.clear();
+                console.log('%c🚫 STOP!', 'color: red; font-size: 50px; font-weight: bold;');
+                console.log('%cThis is a browser feature intended for developers. Code protection is active.', 'color: red; font-size: 16px;');
+            }, 1000);
+
+            // Monitor for DevTools
+            function checkDevTools() {
+                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                    showProtectionWarning();
+                }
+            }
+            
+            setInterval(checkDevTools, 500);
+
+            function showProtectionWarning() {
+                const warning = document.getElementById('protectionWarning');
+                if (warning) {
+                    warning.style.display = 'flex';
+                    setTimeout(() => {
+                        warning.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            // Override console functions
+            window.console = {
+                log: function() {},
+                error: function() {},
+                warn: function() {},
+                info: function() {},
+                debug: function() {},
+                trace: function() {},
+                dir: function() {},
+                group: function() {},
+                groupCollapsed: function() {},
+                groupEnd: function() {},
+                time: function() {},
+                timeEnd: function() {},
+                profile: function() {},
+                profileEnd: function() {},
+                dirxml: function() {},
+                assert: function() {},
+                count: function() {},
+                markTimeline: function() {},
+                timeline: function() {},
+                timelineEnd: function() {},
+                timeStamp: function() {},
+                table: function() {},
+                exception: function() {},
+                clear: function() {}
+            };
+
+            // Disable printing
+            window.addEventListener('beforeprint', function(e) {
+                e.preventDefault();
+                showProtectionWarning();
+                return false;
+            });
+
+            // Monitor for suspicious activity
+            let clickCount = 0;
+            document.addEventListener('click', function(e) {
+                clickCount++;
+                if (clickCount > 50) { // Suspicious clicking patterns
+                    showProtectionWarning();
+                }
+            });
+
+            // Reset click count every 10 seconds
+            setInterval(() => { clickCount = 0; }, 10000);
+
+            // Obfuscate the source when possible
+            document.addEventListener('DOMContentLoaded', function() {
+                // Remove comments from DOM
+                const walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_COMMENT,
+                    null,
+                    false
+                );
+                
+                const commentsToRemove = [];
+                let node;
+                
+                while (node = walker.nextNode()) {
+                    commentsToRemove.push(node);
+                }
+                
+                commentsToRemove.forEach(comment => {
+                    comment.remove();
+                });
+            });
+        })();
+
+        // ============================================
+        // ENHANCED BULK SMS APPLICATION WITH EXCEL UPLOAD FUNCTIONALITY
+        // ============================================
+        
+        // httpsms.com API configuration using your specifications
+        const API_CONFIG = {
+            apiKey: "uk_zll7QNDo_830gEsDzigG7FaWd2dBOTGXxq7w0RTBcPaLvkgi-bKMQcgwC_vNN8A6",
+            baseUrl: "https://api.httpsms.com/v1/messages/send",
+            fromNumber: "+639762161717" // Your SIM card number
+        };
+
+        // Promo codes configuration
+        const PROMO_CODES = {
+            'FREESMS2025': {
+                name: 'New Year Special',
+                benefits: {
+                    extendedChars: true,
+                    priorityDelivery: true,
+                    deliveryReceipt: true
+                },
+                maxChars: 300
+            },
+            'VALENTINE2025': {
+                name: 'Valentine Special',
+                benefits: {
+                    extendedChars: true,
+                    priorityDelivery: true,
+                    deliveryReceipt: true
+                },
+                maxChars: 300
+            },
+            'PREMIUM': {
+                name: 'Premium Access',
+                benefits: {
+                    extendedChars: true,
+                    priorityDelivery: true,
+                    deliveryReceipt: true
+                },
+                maxChars: 300
+            }
+        };
+
+        let currentSMSType = 'single';
+        let phoneNumberCount = 1;
+        let isSending = false;
+        let activePromoCode = null;
+        let isPromoExpanded = false;
+        let uploadedNumbers = []; // Store uploaded phone numbers from Excel
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAuthState();
+            generateCaptcha();
+            setupFormValidation();
+            initializeBulkSMSForm();
+            setupPromoCodeValidation();
+        });
+
+        // ============================================
+        // EXCEL UPLOAD FUNCTIONALITY
+        // ============================================
+
+        function downloadExcelTemplate() {
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Create sample data with proper headers
+            const wsData = [
+                ['NO.', 'PHONE NUMBER'],
+                [1, '9171234567'],
+                [2, '9281234567'],
+                [3, '9391234567'],
+                [4, '9451234567'],
+                [5, '9561234567']
+            ];
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { width: 10 },  // NO. column
+                { width: 20 }   // PHONE NUMBER column
+            ];
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Phone Numbers');
+            
+            // Generate Excel file and trigger download
+            XLSX.writeFile(wb, 'FreeSMSPH_Phone_Numbers_Template.xlsx');
+            
+            showToast('📊 Excel template downloaded successfully!');
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show file info
+            const fileInfo = document.getElementById('excelFileInfo');
+            const fileName = document.getElementById('excelFileName');
+            fileName.textContent = file.name;
+            fileInfo.classList.add('show');
+
+            // Clear previous errors
+            hideExcelError();
+
+            // Read the Excel file
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get the first worksheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // Validate and process the data
+                    processExcelData(jsonData);
+                    
+                } catch (error) {
+                    console.error('Excel processing error:', error);
+                    showExcelError('Failed to read Excel file. Please make sure it\'s a valid Excel file (.xlsx or .xls).');
+                    clearExcelFile();
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processExcelData(data) {
+            if (!data || data.length < 2) {
+                showExcelError('Excel file is empty or has insufficient data. Please add phone numbers to the file.');
+                return;
+            }
+
+            // Check headers
+            const headers = data[0];
+            if (!headers || headers.length < 2) {
+                showExcelError('Invalid Excel format. Please ensure the file has at least 2 columns.');
+                return;
+            }
+
+            // Validate headers (case-insensitive)
+            const header1 = String(headers[0]).toLowerCase().trim();
+            const header2 = String(headers[1]).toLowerCase().trim();
+            
+            if (header1 !== 'no.' || header2 !== 'phone number') {
+                showExcelError('Invalid Excel format. First column should be "NO." and second column should be "PHONE NUMBER".');
+                return;
+            }
+
+            // Process phone numbers (skip header row)
+            const phoneNumbers = [];
+            const invalidRows = [];
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 2) continue;
+                
+                const phoneNumber = String(row[1]).trim();
+                if (!phoneNumber) continue;
+                
+                // Clean and validate phone number
+                const cleanedNumber = phoneNumber.replace(/[^0-9]/g, '');
+                
+                // Check if it's a valid 10-digit Philippine mobile number
+                if (cleanedNumber.length === 10 && cleanedNumber.startsWith('9')) {
+                    phoneNumbers.push(cleanedNumber);
+                } else if (cleanedNumber.length === 11 && cleanedNumber.startsWith('09')) {
+                    // Convert 09XXXXXXXXX to 9XXXXXXXXX
+                    phoneNumbers.push(cleanedNumber.substring(1));
+                } else if (cleanedNumber.length === 13 && cleanedNumber.startsWith('639')) {
+                    // Convert 639XXXXXXXXX to 9XXXXXXXXX
+                    phoneNumbers.push(cleanedNumber.substring(2));
+                } else {
+                    invalidRows.push(i + 1);
+                }
+            }
+
+            if (phoneNumbers.length === 0) {
+                showExcelError('No valid phone numbers found in the Excel file. Please check the format and try again.');
+                return;
+            }
+
+            // Remove duplicates
+            const uniqueNumbers = [...new Set(phoneNumbers)];
+            
+            // Update uploaded numbers
+            uploadedNumbers = uniqueNumbers;
+            displayUploadedNumbers();
+            
+            // Show success message
+            let message = `✅ Successfully loaded ${uniqueNumbers.length} phone numbers from Excel!`;
+            if (invalidRows.length > 0) {
+                message += ` (${invalidRows.length} invalid numbers skipped)`;
+            }
+            showToast(message);
+            
+            // Mark upload section as active
+            document.getElementById('excelUploadSection').classList.add('active');
+        }
+
+        function displayUploadedNumbers() {
+            const section = document.getElementById('uploadedNumbersSection');
+            const list = document.getElementById('uploadedNumbersList');
+            const count = document.getElementById('uploadedNumbersCount');
+            
+            if (uploadedNumbers.length === 0) {
+                section.classList.remove('show');
+                return;
+            }
+            
+            // Update count
+            count.textContent = uploadedNumbers.length;
+            
+            // Clear and populate list
+            list.innerHTML = '';
+            uploadedNumbers.forEach((number, index) => {
+                const item = document.createElement('div');
+                item.className = 'uploaded-number-item';
+                item.innerHTML = `
+                    <span class="uploaded-number-text">+63${number}</span>
+                    <button type="button" class="uploaded-number-remove" onclick="removeUploadedNumber(${index})" title="Remove Number">×</button>
+                `;
+                list.appendChild(item);
+            });
+            
+            // Show section with animation
+            section.classList.add('show');
+        }
+
+        function removeUploadedNumber(index) {
+            uploadedNumbers.splice(index, 1);
+            displayUploadedNumbers();
+            showToast(`📱 Phone number removed from uploaded list`);
+            
+            if (uploadedNumbers.length === 0) {
+                document.getElementById('excelUploadSection').classList.remove('active');
+            }
+        }
+
+        function clearUploadedNumbers() {
+            uploadedNumbers = [];
+            displayUploadedNumbers();
+            document.getElementById('excelUploadSection').classList.remove('active');
+            showToast('🗑️ All uploaded numbers cleared');
+        }
+
+        function clearExcelFile() {
+            document.getElementById('excelFileInput').value = '';
+            document.getElementById('excelFileInfo').classList.remove('show');
+            hideExcelError();
+        }
+
+        function showExcelError(message) {
+            const errorDiv = document.getElementById('excelError');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideExcelError() {
+            const errorDiv = document.getElementById('excelError');
+            errorDiv.classList.remove('show');
+        }
+
+        // ============================================
+        // PROMO CODE FUNCTIONALITY
+        // ============================================
+
+        function togglePromoSection() {
+            const promoSection = document.getElementById('promoSection');
+            isPromoExpanded = !isPromoExpanded;
+            
+            if (isPromoExpanded) {
+                promoSection.classList.add('expanded');
+                // Focus on promo input when expanded
+                setTimeout(() => {
+                    document.getElementById('promoCodeInput').focus();
+                }, 300);
+            } else {
+                promoSection.classList.remove('expanded');
+                // Clear promo code when collapsed
+                clearPromoCode();
+            }
+        }
+
+        function setupPromoCodeValidation() {
+            const promoInput = document.getElementById('promoCodeInput');
+            const promoStatus = document.getElementById('promoStatus');
+            
+            promoInput.addEventListener('input', function(e) {
+                const code = e.target.value.toUpperCase().trim();
+                e.target.value = code; // Ensure uppercase
+                
+                if (code.length === 0) {
+                    clearPromoCode();
+                    return;
+                }
+                
+                // Validate promo code
+                if (PROMO_CODES[code]) {
+                    validatePromoCode(code);
+                } else if (code.length >= 3) {
+                    invalidatePromoCode();
+                }
+            });
+
+            // Handle Enter key in promo input
+            promoInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const code = e.target.value.toUpperCase().trim();
+                    if (code && PROMO_CODES[code]) {
+                        validatePromoCode(code);
+                        // Focus on phone number input
+                        document.getElementById('singlePhoneNumber').focus();
+                    }
+                }
+            });
+        }
+
+        function validatePromoCode(code) {
+            const promoInput = document.getElementById('promoCodeInput');
+            const promoStatus = document.getElementById('promoStatus');
+            const promoBenefits = document.getElementById('promoBenefits');
+            const promoCharInfo = document.getElementById('promoCharInfo');
+            const maxCharsSpan = document.getElementById('maxChars');
+            const messageText = document.getElementById('messageText');
+            
+            const promoData = PROMO_CODES[code];
+            activePromoCode = code;
+            
+            // Update input styling
+            promoInput.classList.remove('invalid');
+            promoInput.classList.add('valid');
+            
+            // Show success status
+            promoStatus.className = 'promo-status valid show';
+            promoStatus.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">✅</span>
+                    <span><strong>${promoData.name}</strong> activated successfully!</span>
+                </div>
+            `;
+            
+            // Show benefits
+            promoBenefits.style.display = 'block';
+            
+            // Update character limit
+            if (promoData.benefits.extendedChars) {
+                messageText.maxLength = promoData.maxChars;
+                maxCharsSpan.textContent = promoData.maxChars;
+                promoCharInfo.style.display = 'inline';
+            }
+            
+            // Show success toast
+            showToast(`🎉 Promo code "${code}" activated! Enjoy premium benefits.`);
+            
+            // Add sparkle animation to promo icon
+            const promoIcon = document.querySelector('.promo-icon');
+            promoIcon.style.animation = 'pulse-promo 1s infinite';
+        }
+
+        function invalidatePromoCode() {
+            const promoInput = document.getElementById('promoCodeInput');
+            const promoStatus = document.getElementById('promoStatus');
+            
+            // Update input styling
+            promoInput.classList.remove('valid');
+            promoInput.classList.add('invalid');
+            
+            // Show error status
+            promoStatus.className = 'promo-status invalid show';
+            promoStatus.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">❌</span>
+                    <span>Invalid promo code. Please check and try again.</span>
+                </div>
+            `;
+            
+            activePromoCode = null;
+        }
+
+        function clearPromoCode() {
+            const promoInput = document.getElementById('promoCodeInput');
+            const promoStatus = document.getElementById('promoStatus');
+            const promoBenefits = document.getElementById('promoBenefits');
+            const promoCharInfo = document.getElementById('promoCharInfo');
+            const maxCharsSpan = document.getElementById('maxChars');
+            const messageText = document.getElementById('messageText');
+            
+            // Clear input
+            promoInput.value = '';
+            promoInput.classList.remove('valid', 'invalid');
+            
+            // Hide status and benefits
+            promoStatus.classList.remove('show');
+            promoBenefits.style.display = 'none';
+            promoCharInfo.style.display = 'none';
+            
+            // Reset character limit
+            messageText.maxLength = 200;
+            maxCharsSpan.textContent = '200';
+            
+            // Clear active promo
+            activePromoCode = null;
+            
+            // Reset promo icon animation
+            const promoIcon = document.querySelector('.promo-icon');
+            promoIcon.style.animation = 'pulse-promo 2s infinite';
+        }
+
+        // Enhanced toast notification function with better styling
+        function showToast(message, isError = false) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">${isError ? '❌' : '✅'}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Update authentication state
+        function updateAuthState() {
+            const isLoggedIn = localStorage.getItem('userLoggedIn') === 'true';
+            const userName = localStorage.getItem('userName') || 'User';
+            const userUsername = localStorage.getItem('userUsername') || '';
+            const userFirstName = localStorage.getItem('userFirstName') || '';
+            
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userAvatarElement = document.getElementById('userAvatar');
+            const dropdownFullname = document.getElementById('dropdownFullname');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+            const heroCTA = document.getElementById('heroCTA');
+
+            if (isLoggedIn) {
+                // Hide auth buttons and show user menu
+                authButtons.style.display = 'none';
+                userMenu.classList.add('active');
+                
+                // Update user info display
+                userNameDisplay.textContent = userName;
+                dropdownFullname.textContent = userName;
+                dropdownUsername.textContent = '@' + userUsername;
+                
+                // Create avatar from first letter of name
+                const avatarLetter = userFirstName.charAt(0).toUpperCase() || userName.charAt(0).toUpperCase() || 'U';
+                userAvatarElement.textContent = avatarLetter;
+
+                // Update hero CTA for logged in users
+                heroCTA.innerHTML = `
+                    <button class="btn btn-primary" id="startSendingSMS">Start Sending SMS</button>
+                    <a href="features.html" class="btn btn-secondary">View Dashboard</a>
+                `;
+            } else {
+                // Show auth buttons and hide user menu
+                authButtons.style.display = 'flex';
+                userMenu.classList.remove('active');
+                
+                // Reset hero CTA
+                heroCTA.innerHTML = `
+                    <button class="btn btn-primary" id="startSendingSMS">Start Sending FREE SMS</button>
+                    <a href="features.html" class="btn btn-secondary">Learn More</a>
+                `;
+            }
+
+            // Re-attach event listener for the SMS button
+            const startSendingSMSBtn = document.getElementById('startSendingSMS');
+            if (startSendingSMSBtn) {
+                startSendingSMSBtn.addEventListener('click', openSMSModal);
+            }
+        }
+
+        // User dropdown toggle
+        document.getElementById('userToggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const userMenu = document.getElementById('userMenu');
+            userMenu.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userToggle = document.getElementById('userToggle');
+            
+            if (!userMenu.contains(e.target) && !userToggle.contains(e.target)) {
+                userMenu.classList.remove('open');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Clear all user data from localStorage
+            localStorage.removeItem('userLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userUsername');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            
+            // Close dropdown
+            document.getElementById('userMenu').classList.remove('open');
+            
+            // Show logout toast
+            showToast('Successfully logged out!');
+            
+            // Update UI after a short delay
+            setTimeout(() => {
+                updateAuthState();
+            }, 500);
+        });
+
+        // Enhanced SMS Modal Functions
+        function openSMSModal() {
+            document.getElementById('smsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            generateCaptcha();
+            resetForm();
+        }
+
+        // New function to attempt closing SMS modal with confirmation
+        function attemptCloseSMSModal() {
+            if (isSending) {
+                showConfirmationModal();
+                return;
+            }
+            
+            closeSMSModal();
+        }
+
+        // Show confirmation modal
+        function showConfirmationModal() {
+            document.getElementById('confirmationModal').classList.add('active');
+        }
+
+        // Hide confirmation modal
+        function hideConfirmationModal() {
+            document.getElementById('confirmationModal').classList.remove('active');
+        }
+
+        // Cancel close modal (continue sending)
+        function cancelCloseModal() {
+            hideConfirmationModal();
+            showToast('📤 Continuing SMS sending process...', false);
+        }
+
+        // Confirm close modal (stop sending and close)
+        function confirmCloseModal() {
+            isSending = false;
+            hideConfirmationModal();
+            closeSMSModal();
+            showToast('🛑 SMS sending cancelled', true);
+        }
+
+        function closeSMSModal() {
+            document.getElementById('smsModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            resetForm();
+            hideProgress();
+        }
+
+        function selectSMSType(type) {
+            currentSMSType = type;
+            
+            // Update button states with animation
+            const singleBtn = document.getElementById('singleSMSBtn');
+            const bulkBtn = document.getElementById('bulkSMSBtn');
+            const promoSection = document.getElementById('promoSection');
+            
+            singleBtn.classList.toggle('active', type === 'single');
+            bulkBtn.classList.toggle('active', type === 'bulk');
+            
+            // Show/hide form sections with smooth transition
+            const singleForm = document.getElementById('singleSMSForm');
+            const bulkForm = document.getElementById('bulkSMSForm');
+            
+            singleForm.classList.toggle('active', type === 'single');
+            bulkForm.classList.toggle('active', type === 'bulk');
+            
+            // Show/hide promo section only for single SMS
+            if (type === 'single') {
+                promoSection.style.display = 'block';
+            } else {
+                promoSection.style.display = 'none';
+                // Clear promo when switching to bulk
+                clearPromoCode();
+                isPromoExpanded = false;
+                promoSection.classList.remove('expanded');
+            }
+            
+            // Update send button text
+            const sendBtnText = document.getElementById('sendBtnText');
+            sendBtnText.textContent = type === 'single' ? 'Send SMS ✈️' : 'Send Bulk SMS 📢';
+            
+            // Hide progress when switching types
+            hideProgress();
+        }
+
+        function addPhoneNumber() {
+            if (isSending) {
+                showToast('Cannot add numbers while sending is in progress', true);
+                return;
+            }
+
+            phoneNumberCount++;
+            const phoneNumbersList = document.getElementById('phoneNumbersList');
+            
+            const numberItem = document.createElement('div');
+            numberItem.className = 'number-item';
+            numberItem.style.opacity = '0';
+            numberItem.style.transform = 'translateY(-10px)';
+            numberItem.innerHTML = `
+                <div class="phone-input-container" style="flex: 1;">
+                    <span class="phone-prefix">+63</span>
+                    <input type="tel" class="form-input phone-input" placeholder="9XXXXXXXXX" maxlength="10" pattern="[0-9]{10}">
+                </div>
+                <button type="button" class="remove-number-btn" onclick="removePhoneNumber(this)" title="Remove Number">×</button>
+            `;
+            
+            phoneNumbersList.appendChild(numberItem);
+            
+            // Animate in
+            setTimeout(() => {
+                numberItem.style.transition = 'all 0.3s ease';
+                numberItem.style.opacity = '1';
+                numberItem.style.transform = 'translateY(0)';
+            }, 10);
+            
+            updateRemoveButtons();
+            
+            // Focus on new input
+            const newInput = numberItem.querySelector('.phone-input');
+            newInput.focus();
+        }
+
+        function removePhoneNumber(button) {
+            if (isSending) {
+                showToast('Cannot remove numbers while sending is in progress', true);
+                return;
+            }
+
+            const numberItem = button.parentElement;
+            
+            // Animate out
+            numberItem.style.transition = 'all 0.3s ease';
+            numberItem.style.opacity = '0';
+            numberItem.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                numberItem.remove();
+                phoneNumberCount--;
+                updateRemoveButtons();
+            }, 300);
+        }
+
+        function updateRemoveButtons() {
+            const removeButtons = document.querySelectorAll('.remove-number-btn');
+            removeButtons.forEach((btn, index) => {
+                btn.style.display = removeButtons.length > 1 ? 'flex' : 'none';
+            });
+        }
+
+        function initializeBulkSMSForm() {
+            // Initialize with proper state
+            updateRemoveButtons();
+        }
+
+        function generateCaptcha() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let captcha = '';
+            for (let i = 0; i < 5; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('captchaCode').textContent = captcha;
+        }
+
+        function refreshCaptcha() {
+            generateCaptcha();
+            document.getElementById('captchaInput').value = '';
+            showToast('Captcha refreshed');
+        }
+
+        function resetForm() {
+            document.getElementById('smsForm').reset();
+            document.getElementById('charCount').textContent = '0';
+            
+            // Reset bulk numbers to single input
+            const phoneNumbersList = document.getElementById('phoneNumbersList');
+            phoneNumbersList.innerHTML = `
+                <div class="number-item">
+                    <div class="phone-input-container" style="flex: 1;">
+                        <span class="phone-prefix">+63</span>
+                        <input type="tel" class="form-input phone-input" placeholder="9XXXXXXXXX" maxlength="10" pattern="[0-9]{10}">
+                    </div>
+                    <button type="button" class="remove-number-btn" onclick="removePhoneNumber(this)" style="display: none;">×</button>
+                </div>
+            `;
+            phoneNumberCount = 1;
+            
+            // Reset to single SMS type
+            selectSMSType('single');
+            
+            // Reset promo code section
+            clearPromoCode();
+            isPromoExpanded = false;
+            document.getElementById('promoSection').classList.remove('expanded');
+            
+            // Clear Excel upload
+            clearExcelFile();
+            clearUploadedNumbers();
+            
+            generateCaptcha();
+        }
+
+        function setupFormValidation() {
+            // Character counter for message with promo code support
+            const messageText = document.getElementById('messageText');
+            const charCount = document.getElementById('charCount');
+            
+            messageText.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = count;
+                
+                // Get current max chars (200 or 300 with promo)
+                const maxChars = activePromoCode && PROMO_CODES[activePromoCode] ? 
+                    PROMO_CODES[activePromoCode].maxChars : 200;
+                
+                // Change color based on character count
+                if (count > maxChars * 0.9) {
+                    charCount.style.color = '#dc3545';
+                } else if (count > maxChars * 0.7) {
+                    charCount.style.color = '#ff6b35';
+                } else if (count > maxChars * 0.5) {
+                    charCount.style.color = '#f7931e';
+                } else {
+                    charCount.style.color = '#666';
+                }
+            });
+
+            // Phone number validation - Enhanced for 10-digit numbers
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('phone-input')) {
+                    // Only allow numbers
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+                    
+                    // Ensure it starts with valid PH mobile prefixes
+                    if (value.length > 0) {
+                        const firstDigit = value.charAt(0);
+                        if (firstDigit !== '9') {
+                            // If it starts with 0, remove it and check if next is 9
+                            if (firstDigit === '0' && value.charAt(1) === '9') {
+                                value = value.substring(1);
+                            } else if (!['9'].includes(firstDigit)) {
+                                // Force to start with 9
+                                value = '9' + value.substring(1);
+                            }
+                        }
+                    }
+                    
+                    // Ensure maximum 10 digits
+                    if (value.length > 10) {
+                        value = value.substring(0, 10);
+                    }
+                    
+                    e.target.value = value;
+                    
+                    // Visual feedback for valid/invalid numbers
+                    if (value.length === 10) {
+                        e.target.style.borderColor = '#28a745';
+                        e.target.style.backgroundColor = '#f8fff9';
+                    } else if (value.length > 0) {
+                        e.target.style.borderColor = '#ffc107';
+                        e.target.style.backgroundColor = '#fffbf0';
+                    } else {
+                        e.target.style.borderColor = '#e0e0e0';
+                        e.target.style.backgroundColor = 'white';
+                    }
+                }
+            });
+
+            // Captcha validation on input
+            document.getElementById('captchaInput').addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+                const captchaCode = document.getElementById('captchaCode').textContent;
+                
+                if (e.target.value === captchaCode) {
+                    e.target.style.borderColor = '#28a745';
+                    e.target.style.backgroundColor = '#f8fff9';
+                } else if (e.target.value.length > 0) {
+                    e.target.style.borderColor = '#dc3545';
+                    e.target.style.backgroundColor = '#fff8f8';
+                } else {
+                    e.target.style.borderColor = '#e0e0e0';
+                    e.target.style.backgroundColor = 'white';
+                }
+            });
+
+            // Form submission
+            document.getElementById('smsForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (!isSending) {
+                    handleSMSSubmission();
+                }
+            });
+        }
+
+        function validateForm() {
+            const captchaCode = document.getElementById('captchaCode').textContent;
+            const captchaInput = document.getElementById('captchaInput').value.toUpperCase();
+            const messageText = document.getElementById('messageText').value.trim();
+
+            // Validate captcha
+            if (captchaInput !== captchaCode) {
+                showToast('❌ Invalid captcha code. Please try again.', true);
+                document.getElementById('captchaInput').focus();
+                return false;
+            }
+
+            // Validate message
+            if (!messageText) {
+                showToast('❌ Please enter a message.', true);
+                document.getElementById('messageText').focus();
+                return false;
+            }
+
+            // Check message length based on promo code
+            const maxChars = activePromoCode && PROMO_CODES[activePromoCode] ? 
+                PROMO_CODES[activePromoCode].maxChars : 200;
+            
+            if (messageText.length > maxChars) {
+                showToast(`❌ Message too long. Maximum ${maxChars} characters allowed.`, true);
+                document.getElementById('messageText').focus();
+                return false;
+            }
+
+            // Validate phone numbers based on SMS type
+            if (currentSMSType === 'single') {
+                const phoneNumber = document.getElementById('singlePhoneNumber').value;
+                if (!phoneNumber || phoneNumber.length !== 10) {
+                    showToast('❌ Please enter a valid 10-digit Philippine mobile number.', true);
+                    document.getElementById('singlePhoneNumber').focus();
+                    return false;
+                }
+                if (!phoneNumber.startsWith('9')) {
+                    showToast('❌ Philippine mobile numbers should start with 9 (after +63).', true);
+                    document.getElementById('singlePhoneNumber').focus();
+                    return false;
+                }
+            } else {
+                // For bulk SMS, combine manual entries and uploaded numbers
+                const phoneInputs = document.querySelectorAll('#bulkSMSForm .phone-input');
+                const manualNumbers = [];
+                
+                phoneInputs.forEach(input => {
+                    const value = input.value.trim();
+                    if (value && value.length === 10 && value.startsWith('9')) {
+                        manualNumbers.push(value);
+                    }
+                });
+                
+                const totalNumbers = [...new Set([...manualNumbers, ...uploadedNumbers])];
+                
+                if (totalNumbers.length === 0) {
+                    showToast('❌ Please enter at least one valid phone number or upload an Excel file with phone numbers.', true);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Enhanced SMS API function with promo code support
+        async function sendSMSViaAPI(phoneNumber, message, isPromoMessage = false) {
+            try {
+                // DETAILED CONSOLE LOGGING - exactly as you requested
+                console.log('=== SMS SENDING INFO ===');
+                console.log('FROM NUMBER:', API_CONFIG.fromNumber);
+                console.log('TO NUMBER:', phoneNumber);
+                console.log('MESSAGE:', message);
+                console.log('API URL:', API_CONFIG.baseUrl);
+                console.log('PROMO CODE:', activePromoCode || 'None');
+                console.log('PROMO BENEFITS:', isPromoMessage ? 'Active' : 'None');
+                console.log('========================');
+
+                const requestBody = {
+                    "content": message,
+                    "from": API_CONFIG.fromNumber,
+                    "to": phoneNumber
+                };
+
+                console.log('REQUEST BODY:', JSON.stringify(requestBody, null, 2));
+
+                const response = await fetch(API_CONFIG.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': API_CONFIG.apiKey,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                // Always log raw response - exactly as you requested
+                console.log('=== API RESPONSE ===');
+                console.log('STATUS CODE:', response.status);
+                console.log('RESPONSE DATA:', data);
+                console.log('===================');
+
+                if (response.ok) {
+                    console.log('✅ SMS SENT SUCCESSFULLY!');
+                    if (isPromoMessage) {
+                        console.log('🎁 PROMO BENEFITS APPLIED!');
+                    }
+                    return { success: true, data: data };
+                } else {
+                    console.error('❌ API ERROR:', data);
+                    return { success: false, error: data.message || JSON.stringify(data) || 'Failed to send SMS' };
+                }
+            } catch (error) {
+                console.error('=== NETWORK ERROR ===');
+                console.error('ERROR MESSAGE:', error.message);
+                console.error('FULL ERROR:', error);
+                console.error('=====================');
+                return { success: false, error: 'Network error: ' + error.message };
+            }
+        }
+
+        // Enhanced phone number formatting - Updated for user input numbers
+        function formatPhoneNumber(phoneNumber) {
+            // Remove any non-digit characters
+            const cleaned = phoneNumber.replace(/\D/g, '');
+            
+            // Format as +63XXXXXXXXXX (user inputs the full 10 digits including 9)
+            return '+63' + cleaned;
+        }
+
+        // Show progress for bulk SMS
+        function showProgress(current, total) {
+            const bulkProgress = document.getElementById('bulkProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            bulkProgress.classList.add('active');
+            
+            const percentage = (current / total) * 100;
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = `Sending SMS ${current} of ${total}...`;
+        }
+
+        function hideProgress() {
+            const bulkProgress = document.getElementById('bulkProgress');
+            bulkProgress.classList.remove('active');
+        }
+
+        // Enhanced SMS submission handler with Excel upload support
+        async function handleSMSSubmission() {
+            if (!validateForm()) {
+                return;
+            }
+
+            if (isSending) {
+                showToast('⚠️ SMS sending is already in progress. Please wait.', true);
+                return;
+            }
+
+            isSending = true;
+            const sendBtn = document.getElementById('sendBtn');
+            const sendBtnText = document.getElementById('sendBtnText');
+            const messageText = document.getElementById('messageText').value.trim();
+            const isPromoMessage = activePromoCode !== null;
+            
+            // Disable button and show loading
+            sendBtn.disabled = true;
+            sendBtnText.innerHTML = '<span class="loading-spinner"></span>Sending...';
+
+            try {
+                if (currentSMSType === 'single') {
+                    // Single SMS with enhanced feedback and promo support
+                    const phoneNumber = document.getElementById('singlePhoneNumber').value;
+                    const formattedNumber = formatPhoneNumber(phoneNumber);
+                    
+                    console.log('=== SINGLE SMS ATTEMPT ===');
+                    console.log('Input Number:', phoneNumber);
+                    console.log('Formatted Number:', formattedNumber);
+                    console.log('Message:', messageText);
+                    console.log('Promo Code:', activePromoCode || 'None');
+                    console.log('==========================');
+                    
+                    const result = await sendSMSViaAPI(formattedNumber, messageText, isPromoMessage);
+                    
+                    if (result.success) {
+                        let successMessage = `✅ SMS sent successfully to ${formattedNumber}!`;
+                        if (isPromoMessage) {
+                            successMessage += ` 🎁 Premium benefits applied with ${activePromoCode}!`;
+                        }
+                        showToast(successMessage);
+                        closeSMSModal();
+                    } else {
+                        showToast('❌ Failed to send SMS: ' + result.error, true);
+                    }
+                } else {
+                    // Enhanced Bulk SMS with Excel upload support and progress tracking
+                    const phoneInputs = document.querySelectorAll('#bulkSMSForm .phone-input');
+                    const manualNumbers = [];
+                    
+                    phoneInputs.forEach(input => {
+                        const value = input.value.trim();
+                        if (value && value.length === 10 && value.startsWith('9')) {
+                            manualNumbers.push(value);
+                        }
+                    });
+                    
+                    // Combine manual entries and uploaded numbers, remove duplicates
+                    const allNumbers = [...new Set([...manualNumbers, ...uploadedNumbers])];
+                    const validNumbers = allNumbers.map(num => formatPhoneNumber(num));
+                    
+                    if (validNumbers.length === 0) {
+                        showToast('❌ No valid phone numbers found.', true);
+                        return;
+                    }
+                    
+                    console.log('=== BULK SMS ATTEMPT ===');
+                    console.log('Manual Numbers:', manualNumbers.length);
+                    console.log('Uploaded Numbers:', uploadedNumbers.length);
+                    console.log('Total Unique Numbers:', validNumbers.length);
+                    console.log('Numbers List:', validNumbers);
+                    console.log('Message:', messageText);
+                    console.log('========================');
+                    
+                    // Show bulk SMS start toast
+                    showToast(`📢 Starting bulk SMS to ${validNumbers.length} numbers (${manualNumbers.length} manual + ${uploadedNumbers.length} uploaded)...`);
+                    
+                    let successCount = 0;
+                    let failCount = 0;
+                    const failedNumbers = [];
+                    
+                    // Show initial progress
+                    showProgress(0, validNumbers.length);
+                    
+                    // Send SMS to each number with progress updates
+                    for (let i = 0; i < validNumbers.length; i++) {
+                        if (!isSending) {
+                            // User cancelled
+                            break;
+                        }
+
+                        const phoneNumber = validNumbers[i];
+                        
+                        // Update progress
+                        showProgress(i + 1, validNumbers.length);
+                        sendBtnText.innerHTML = `<span class="loading-spinner"></span>Sending ${i + 1}/${validNumbers.length}...`;
+                        
+                        console.log(`Sending ${i + 1}/${validNumbers.length} to ${phoneNumber}`);
+                        
+                        const result = await sendSMSViaAPI(phoneNumber, messageText, false);
+                        if (result.success) {
+                            successCount++;
+                            showToast(`✅ SMS ${successCount}/${validNumbers.length} sent to ${phoneNumber}`);
+                        } else {
+                            failCount++;
+                            failedNumbers.push(phoneNumber);
+                            showToast(`❌ Failed to send to ${phoneNumber}: ${result.error}`, true);
+                        }
+                        
+                        // Delay between requests to avoid rate limiting (500ms)
+                        if (i < validNumbers.length - 1 && isSending) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    }
+                    
+                    // Show final results toast
+                    if (failedNumbers.length > 0) {
+                        showToast(`📊 Bulk SMS Complete: ${successCount} sent, ${failCount} failed. Failed: ${failedNumbers.join(', ')}`, failCount > successCount);
+                    } else {
+                        showToast(`🎉 Bulk SMS Complete: All ${successCount} messages sent successfully!`);
+                    }
+                    
+                    // Hide progress
+                    hideProgress();
+                    
+                    if (successCount > 0 && failCount === 0) {
+                        showToast(`🎉 Successfully sent all ${successCount} SMS messages!`);
+                        closeSMSModal();
+                    } else if (successCount > 0 && failCount > 0) {
+                        showToast(`⚠️ Sent ${successCount} messages, ${failCount} failed. Check console for details.`);
+                    } else {
+                        showToast('❌ Failed to send all SMS messages. Please check your numbers and try again.', true);
+                    }
+                }
+            } catch (error) {
+                console.error('=== SUBMISSION ERROR ===');
+                console.error('ERROR:', error.message);
+                console.error('FULL ERROR:', error);
+                console.error('========================');
+                showToast('❌ An unexpected error occurred: ' + error.message, true);
+                hideProgress();
+            } finally {
+                // Re-enable button and reset state
+                isSending = false;
+                sendBtn.disabled = false;
+                sendBtnText.textContent = currentSMSType === 'single' ? 'Send SMS ✈️' : 'Send Bulk SMS 📢';
+            }
+        }
+
+        // Enhanced modal controls
+        document.getElementById('smsModal').addEventListener('click', function(e) {
+            if (e.target === this && !isSending) {
+                closeSMSModal();
+            } else if (e.target === this && isSending) {
+                showConfirmationModal();
+            }
+        });
+
+        // Enhanced keyboard controls
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('confirmationModal').classList.contains('active')) {
+                    cancelCloseModal();
+                } else if (document.getElementById('smsModal').classList.contains('active')) {
+                    attemptCloseSMSModal();
+                }
+            }
+        });
+
+        // Close confirmation modal when clicking overlay
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cancelCloseModal();
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .section-title').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Check for successful login redirect
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('login') === 'success') {
+            showToast('Welcome back! You have successfully logged in.');
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Enhanced error handling for network issues
+        window.addEventListener('offline', function() {
+            showToast('❌ You are offline. SMS sending is not available.', true);
+        });
+
+        window.addEventListener('online', function() {
+            showToast('✅ Connection restored. SMS sending is now available.');
+        });
+
+        // Prevent form submission on Enter key in phone inputs
+        document.addEventListener('keypress', function(e) {
+            if (e.target.classList.contains('phone-input') && e.key === 'Enter') {
+                e.preventDefault();
+                if (currentSMSType === 'bulk') {
+                    addPhoneNumber();
+                } else {
+                    document.getElementById('messageText').focus();
+                }
+            }
+        });
+
+        // Auto-focus next input when current is filled (bulk SMS) - Updated for 10 digits
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('phone-input') && e.target.value.length === 10 && currentSMSType === 'bulk') {
+                const currentItem = e.target.closest('.number-item');
+                const nextItem = currentItem.nextElementSibling;
+                
+                if (nextItem && nextItem.classList.contains('number-item')) {
+                    const nextInput = nextItem.querySelector('.phone-input');
+                    if (nextInput && !nextInput.value) {
+                        nextInput.focus();
+                    }
+                } else {
+                    // If this is the last input and it's filled, maybe add a new one or focus message
+                    document.getElementById('messageText').focus();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
